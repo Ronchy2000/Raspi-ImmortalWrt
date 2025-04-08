@@ -98,8 +98,11 @@
 - 略
 
 2. 自定义规则添加：
-   - [OpenClash 维护指南](https://blog.dreamtobe.cn/openclash_maintain/)
-   - [自定义 OpenClash 规则](https://github.com/Aethersailor/Custom_OpenClash_Rules)
+- [OpenClash 维护指南.](https://blog.dreamtobe.cn/openclash_maintain/)
+- [自定义 OpenClash 规则.](https://github.com/Aethersailor/Custom_OpenClash_Rules) 配置成功！
+- [GitHub 访问优化.](https://github.com/521xueweihan/GitHub520)
+    - 添加 GitHub 相关域名到直连规则.
+    - 通过修改本地 hosts 文件解决 GitHub 访问速度慢和图片显示问题.
 
 ## 参考资料
 
@@ -215,9 +218,11 @@ Install cargo luci theme to enhance the interface aesthetics (refer to video at 
 - etc.
 
 2. Custom rule additions:
-   - [OpenClash Maintenance Guide](https://blog.dreamtobe.cn/openclash_maintain/)
-   - [Custom OpenClash Rules](https://github.com/Aethersailor/Custom_OpenClash_Rules)
-
+- [OpenClash Maintenance Guide.](https://blodreamtobe.cn/openclash_maintain/)
+- [Custom OpenClash Rules.](https://github.coAethersailor/Custom_OpenClash_Rules)
+- [GitHub Access Optimization.](https://githucom/521xueweihan/GitHub520)
+	- Add GitHub related domains to direct connection rules.
+	- Solve slow GitHub access and image display issues by modifying local hosts file.
 ## References
 
 - [BuliangLin OpenWrt Video Tutorial](https://www.youtube.com/watch?v=JfSJmPFiL_s)
