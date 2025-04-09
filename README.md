@@ -1,8 +1,8 @@
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.2.3/css/flag-icons.min.css" />
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.2.3/css/flag-icons.min.css" /> -->
 
-<!-- [🇨🇳 中文文档](#chinese) | [🇺🇸 English](#english) -->
+[🇨🇳 中文文档](#chinese) | [🇺🇸 English](#english)
 
-[<span class="fi fi-cn"></span> 中文文档](#chinese) | [<span class="fi fi-us"></span> English](#english)
+<!-- [<span class="fi fi-cn"></span> 中文文档](#chinese) | [<span class="fi fi-us"></span> English](#english) -->
 
 <a id="chinese"></a>
 # 树莓派 OpenWrt 软路由配置指南
