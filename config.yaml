@@ -6,7 +6,7 @@
 
 proxy-providers:
   Airport1:
-    url: "https://sub0530.wdyserver.com/cgi-bin/get/api/domain/ip/access?token=c1c3b23e23c684ec8fb1a9ea2f24fdb6"
+    url: "写自己的机场订阅链接"
     type: http
     interval: 86400
     health-check:
