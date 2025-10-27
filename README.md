@@ -107,7 +107,7 @@ cat /etc/openwrt_release; uname -m
   <img src="figures/拨号出错图.png" width="80%" />
 </div>
 
-####解决方法：
+#### 解决方法：
 
 1. 新建 WAN0 接口，配置拨号账户
 2. LAN 设置：将设备改为无线网络
@@ -134,7 +134,8 @@ cat /etc/openwrt_release; uname -m
 - luci-app-openclash
 - luci-i18n-passwall-zh-cn
 - luci-i18n-homeproxy-zh-cn
--插件位置在：侧边栏的“服务”标签页。
+
+插件位置在：侧边栏的“服务”标签页。
 
 ### 科学上网配置
 > 说实话，折腾软路由到现在，不就是为了这一刻嘛？
