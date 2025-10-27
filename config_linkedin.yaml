@@ -246,6 +246,7 @@ rules:
   - DOMAIN-SUFFIX,onlinelibrary.wiley.com,DIRECT
   - DOMAIN-SUFFIX,id.elsevier.com,DIRECT
   - DOMAIN-SUFFIX,nature.com,DIRECT
+  - DOMAIN-SUFFIX,science.org,DIRECT
   # #steam
   - GEOSITE,category-games@cn,DIRECT
   - DOMAIN-SUFFIX,steamserver.net,DIRECT
