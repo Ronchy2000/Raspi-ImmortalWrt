@@ -44,7 +44,7 @@ cat /etc/openwrt_release; uname -m
 具体固件包可以在release中找到。
 
 ## 烧录固件
-> MacOS自己想办法，我自己是切换到windows才去烧录的emmm...
+> 详细步骤请见文档：[docs/Write_Image.md](docs/Write_Image.md)
 - 烧录工具：
     - rufus(windows)：https://rufus.ie
     - etcher(windows/linux/macos)：https://etcher.balena.io/#download-etcher
@@ -60,7 +60,14 @@ cat /etc/openwrt_release; uname -m
 ## 初始配置
 
 ### 连接到 OpenWrt
-1. 有线连接：（推荐使用，尤其是首次连接）
+1. 无线连接，即ssh连接:（推荐）
+
+  - i. 连接树莓派wifi（默认名称：`ImmortalWrt` ）
+  - ii.浏览器输入`192.168.1.1`，进入后台，默认密码为空，直接点击确定。
+  - ii.（与上方二选一） 使用本地ssh工具，address: `192.168.1.1`, 端口：`22`, Username: `root`, Password: `默认为空`/`编译固件时候的密码，请见`[固件选择](#firmware_selection)
+
+
+2. 有线连接：
 
   - i. 使用网线直连树莓派；
   - ii. 更改本地以太网 IPv4 地址为 `192.168.1.x` 网段， 子网掩码`255.255.255.0`;（末尾`x` 可以是2-255范围中的任意整数）,网关填写：`192.168.1.1`。
@@ -71,22 +78,19 @@ cat /etc/openwrt_release; uname -m
 
   - iii. 访问 `192.168.1.1` 进入 OpenWrt 的web后台;
   - iiii. 默认账户：root; 默认密码：(空)或烧录时设置的密码。
-> `方法1`适用于最简单以及复杂的校园网环境（尤其是同一个实验室中出现不同局域网的情况）
+> `方法2`适用于复杂的校园网环境（尤其是同一个实验室中出现不同局域网的情况）
 
-2. 无线连接，即ssh连接:（高级使用方式）
-  i. 连接树莓派wifi
-  ii. 使用本地ssh工具，address: `192.168.1.1`, 端口：`22`, Username: `root`, Password: `编译固件时候的密码，请见`[固件选择](#firmware_selection)
+
 
 
 
 ### 基础设置
+> 连接后，第一步先修改密码。第二部关闭IPv6设置。
 
-- 默认账户：root
-- 默认密码：  （空）
 - 关闭 IPv6 相关设置（参考视频 24:42）https://www.youtube.com/watch?v=JfSJmPFiL_s&t=344s
 
 ## 网络配置
-
+> 链接
 <a id = "simplest_method"></a>
 ### 最简单用法
 将树莓派的单个网口连接到光猫或路由器的LAN口，此时任何终端设备连接上树莓派的wifi后，都可上网。
