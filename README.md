@@ -54,7 +54,7 @@ cat /etc/openwrt_release; uname -m
 <a id="firmware_selection_cn"></a>
 ## 固件选择
 
-- 固件源：`ImmortalWrt Firmware Selector ： https://firmware-selector.immortalwrt.org/ `
+- 固件源：[ImmortalWrt Firmware Selector](https://firmware-selector.immortalwrt.org)
 - 注意事项：
   - EXT4 版本会覆盖掉所有的用户设置 `覆盖写入(如果需要重新配置，请刷入此固件！)`
   - SQUASHFS 版本写入后，用户的配置不变。`增量写入`
@@ -256,7 +256,7 @@ The official OpenWrt firmware is too minimalistic, so I chose the feature-rich `
 <a id="firmware_selection_en"></a>
 ## Firmware Selection
 
-- Firmware Source: `ImmortalWrt Firmware Selector: https://firmware-selector.immortalwrt.org/`
+- Firmware Source: [ImmortalWrt Firmware Selector](https://firmware-selector.immortalwrt.org)
 - Important Notes:
   - EXT4 version will overwrite all user settings `(Overwrite mode - flash this firmware if you need to reconfigure!)`
   - SQUASHFS version preserves user configurations after flashing `(Incremental mode)`

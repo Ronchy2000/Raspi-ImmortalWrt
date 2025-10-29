@@ -2,6 +2,13 @@
 
 <a id="chinese"></a>
 # 烧录固件工具及步骤
+
+- 固件源：[ImmortalWrt Firmware Selector](https://firmware-selector.immortalwrt.org)
+- 注意事项：
+  - EXT4 版本会覆盖掉所有的用户设置 `覆盖写入(如果需要重新配置，请刷入此固件！)`
+  - SQUASHFS 版本写入后，用户的配置不变。`增量写入`
+具体固件包可以在release中找到。
+
 ## Windows
 下载相关.gz后缀固件，解压：
 
@@ -56,6 +63,11 @@ diskutil eject /dev/disk6
 
 <a id="english"></a>
 # Firmware Writing Tools and Steps
+
+- Firmware Source: [ImmortalWrt Firmware Selector](https://firmware-selector.immortalwrt.org)
+- Important Notes:
+  - EXT4 version will overwrite all user settings `(Overwrite mode - flash this firmware if you need to reconfigure!)`
+  - SQUASHFS version preserves user configurations after flashing `(Incremental mode)`
 
 ## Windows
 Download the firmware with the .gz suffix and extract it:
