@@ -21,12 +21,12 @@
 
 与视频不同的是，视频里的 `config.yaml` 在实际使用中会出现两个问题：一是 `LinkedIn`无法正常访问，二是像 IEEE 这类`学术网站`无法正确识别学术网络的 IP，导致需要频繁切换网络才能下载文献。本文提供的配置方案针对规则与 DNS 分流做了调整，解决了上述问题，并给出可复现的示例与验证步骤。
 
-请使用[config_linkedin.yaml](config.yaml)作为配置文件。
+请使用[config_linkedin.yaml](../config.yaml)作为配置文件。
 
 本配置说明：文献库，steam下载走直连，linkedin利用海外DNS访问，防止跳转回国，更多功能请提PR！
 
 <div align="center">
-  <img src="figures/Direct_rules.png" width="80%" />
+  <img src="../figures/Direct_rules.png" width="80%" />
 </div>
 
 
@@ -41,6 +41,14 @@
 
 ## 参考资料
 [https://www.youtube.com/watch?v=s84CWgKus4U&t=105s](https://www.youtube.com/watch?v=s84CWgKus4U&t=105s)
+
+
+## 其他：
+- Openclash更新
+![](../figures/Openclash_config/openclashUpdate.png)
+
+- Openclash备份
+![](../figures/Openclash_config/openclashBackup.png)
 
 ---
 
