@@ -8,8 +8,7 @@
 
 **从零开始，打造属于你的全屋智能网关**
 
-
-<img src="figures/树莓派照片.jpeg" width="40%" style="border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />
+<img src="figures/树莓派照片.png" width="40%" style="border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />
 
 ### 🎯 核心特性
 

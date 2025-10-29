@@ -8,7 +8,7 @@
 
 **Transform Your Raspberry Pi into a Smart Gateway**
 
-<img src="figures/树莓派照片.jpeg" width="40%" style="border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />
+<img src="figures/树莓派照片.png" width="40%" style="border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />
 
 ### 🎯 Core Features
 
