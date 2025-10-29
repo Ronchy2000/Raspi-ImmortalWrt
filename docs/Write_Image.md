@@ -42,7 +42,16 @@ diskutil unmountDisk /dev/disk6
 
 ![](../figures/Write_Image/MacOSWriteMethod.png)
 
+3. 推出TF卡/U盘。
+```bash
+diskutil eject /dev/disk6
+```
+4. 拔出介质，安装到树莓派上。
+
+结束。
+
 ---
+
 [🇨🇳 中文文档](#chinese) | [🇺🇸 English](#english)
 
 <a id="english"></a>
@@ -88,3 +97,11 @@ diskutil unmountDisk /dev/disk6
 ```
 
 ![](../figures/Write_Image/MacOSWriteMethod.png)
+
+3. Eject the TF card/USB drive.
+```bash
+diskutil eject /dev/disk6
+```
+4. Remove the media and install it on the Raspberry Pi.
+
+End.
