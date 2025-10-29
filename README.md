@@ -263,3 +263,8 @@ cat /etc/openwrt_release; uname -m
 - 扩容Overlay空间：[docs/ExtendOverlaySize.md](docs/ExtendOverlaySize.md)
 
 
+
+<p align="center">
+  <em> ❤️ 感谢您的关注!</em><br><br>
+  <img src="https://visitor-badge.laobi.icu/badge?page_id=ronchy2000.Raspi-ImmortalWrt&style=for-the-badge&color=00d4ff" alt="Views">
+</p>

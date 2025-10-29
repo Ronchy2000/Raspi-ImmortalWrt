@@ -250,3 +250,9 @@ If you have backup and restore needs:
 
 ## Software Space Expansion
 - Expand Overlay Space: [docs/ExtendOverlaySize.md](docs/ExtendOverlaySize.md)
+
+
+<p align="center">
+  <em> ❤️ Thanks for visiting!</em><br><br>
+  <img src="https://visitor-badge.laobi.icu/badge?page_id=ronchy2000.Raspi-ImmortalWrt&style=for-the-badge&color=00d4ff" alt="Views">
+</p>
