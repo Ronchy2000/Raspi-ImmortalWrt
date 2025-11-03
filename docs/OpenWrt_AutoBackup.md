@@ -1,43 +1,38 @@
 <a id="chinese"></a>
 [🇨🇳 中文文档](#chinese) | [🇺🇸 English](#english)
-# 🌐 ImmortalWrt → GitHub 自动备份教程
 
-### （仅备份系统配置，本地保留 7 天，云端保留 30 天）
+# 🌐 ImmortalWrt → GitHub 自动备份（含断电补跑）
 
-## 一、安装必要组件
+## 概览
+- 每天 **15:00** 运行 `sysupgrade -b`，将配置包推到自己的 GitHub 仓库。
+- 本地保留 7 天压缩包，仓库保留 30 天；旧文件自动清理不占空间。
+- `/root/github_backup_state.json` 记录最近一次成功时间，断电漏跑时，上电 **10 分钟后** 自动补跑 **一次**。
+- `/root/github_backup.log` 汇总全部日志，含 Push 重试信息和清理动作。
+
+## 为什么要这样做
+- **改到 15:00**：避开凌晨扫尾任务，也便于白天排障。
+- **状态文件 + 补跑脚本**：记录成功时间，确保只在确实漏掉日常备份时才补一次。
+- **统一日志 & Push 重试**：及时发现 SSH/网络问题，不会因偶发失败就丢备份。
+
+## 部署步骤
+
+### 1. 安装依赖
 
 ```bash
 opkg update
 opkg install git openssh-client openssh-keygen ca-bundle ca-certificates
 ```
 
-
-## 二、生成 SSH 密钥并连接 GitHub
+### 2. 生成 SSH 密钥并验证
 
 ```bash
 ssh-keygen -t ed25519 -f /root/.ssh/id_ed25519 -N ""
-cat /root/.ssh/id_ed25519.pub
-```
-
-> 复制输出内容，粘贴到
-> **GitHub → Settings → SSH and GPG keys → New SSH Key**
-
-测试连接：
-
-```bash
+cat /root/.ssh/id_ed25519.pub   # 加到 GitHub → Settings → SSH and GPG keys
 ssh -T git@github.com
-# 若22端口被封，则用：
-ssh -T -p 443 git@ssh.github.com
+ssh -T -p 443 git@ssh.github.com   # 若 22 端口被封
 ```
 
-成功输出示例：
-
-```
-Hi ronchy2000! You've successfully authenticated, but GitHub does not provide shell access.
-```
-
-
-## 三、修改 SSH 配置文件（使用 443 端口）
+### 3. 固定使用 443 端口
 
 ```bash
 cat > /root/.ssh/config <<'EOF'
@@ -58,74 +53,107 @@ chmod 600 /root/.ssh/id_ed25519
 chmod 644 /root/.ssh/id_ed25519.pub
 ```
 
+### 4. 写入备份脚本 `/root/github_backup.sh`
 
-## 四、自动备份脚本 `/root/github_backup.sh`
-
-> 脚本注释为英文，逻辑为：
-> 仅备份系统配置（`sysupgrade -b`），
-> 本地保留 7 天，
-> 云端（GitHub master 分支）保留 30 天。
-> 调整修改下方的：`REMOTE="git@github.com:ronchy2000/immortalwrt-backup.git"`为你的远程仓库链接。
+主要逻辑：生成备份 → 同步仓库 → 推送 → 清理旧文件 → 更新状态。改成你的仓库地址即可。
 
 ```bash
-# 创建自动同步脚本文件
-sudo nano /root/github_backup.sh
-```
-文件内容如下，记得替换远程仓库链接！
-```bash
+cat > /root/github_backup.sh <<'EOF'
 #!/bin/sh
 # ImmortalWrt automatic sysconfig backup to GitHub
 # Local retention: 7 days (rm only)
 # Remote retention: 30 days (git rm + push)
-# Author: ronchy2000
+# Adds: state JSON, better logging, push retry, explicit cause tag
+# Author: ronchy2000 + enhancements
+
+set -eu
 
 PATH=/usr/sbin:/usr/bin:/sbin:/bin
-LOG="/root/github_backup.log"
-mkdir -p "$(dirname "$LOG")"
-exec >>"$LOG" 2>&1
-echo "========== RUN $(date '+%F %T') =========="
 
-set -e
+LOG="/root/github_backup.log"
+STATE="/root/github_backup_state.json"
 REPO_DIR="/root/immortalwrt-backup"
 TMP_DIR="/tmp/backup"
-DATE=$(date +"%Y%m%d_%H%M%S")
-BACKUP_NAME="immortalwrt_backup_${DATE}.tar.gz"
-REMOTE="git@github.com:ronchy2000/immortalwrt-backup.git"
+REMOTE="git@github.com:YOUR-USER/YOUR-REPO.git"   # <-- change to your repo
 BRANCH="master"
 
-echo "[INFO] TMP_DIR=$TMP_DIR REPO_DIR=$REPO_DIR BACKUP=$BACKUP_NAME"
+# Cause marker for logging/state, e.g. "cron" | "catchup" | "manual"
+CAUSE="${1:-manual}"
 
-# 1) Create system backup (sysupgrade -b)
+mkdir -p "$(dirname "$LOG")"
+# Append logging to file
+exec >>"$LOG" 2>&1
+echo "========== RUN $(date '+%F %T') (cause=${CAUSE}) =========="
+
+# Basic error handler (keeps trace in log)
+on_error() {
+  code=$?
+  line=${1:-?}
+  echo "[ERROR] exit=$code at line=${line}"
+  exit $code
+}
+trap 'on_error $LINENO' ERR
+
+DATE="$(date +"%Y%m%d_%H%M%S")"
+BACKUP_NAME="immortalwrt_backup_${DATE}.tar.gz"
+
+echo "[INFO] TMP_DIR=$TMP_DIR  REPO_DIR=$REPO_DIR  BACKUP=$BACKUP_NAME  BRANCH=$BRANCH"
+
+# 1) Create system backup archive
 mkdir -p "$TMP_DIR"
+echo "[STEP] sysupgrade -b $TMP_DIR/$BACKUP_NAME"
 sysupgrade -b "$TMP_DIR/$BACKUP_NAME"
 
-# 2) Prepare/init repo
+# 2) Prepare/init repository
 if [ ! -d "$REPO_DIR/.git" ]; then
+  echo "[STEP] init git repo"
   mkdir -p "$REPO_DIR"
-  cd "$REPO_DIR" || exit 1
+  cd "$REPO_DIR"
   git init
-  git symbolic-ref HEAD refs/heads/$BRANCH
-  git remote add origin "$REMOTE"
+  git symbolic-ref HEAD "refs/heads/$BRANCH"
+  git remote add origin "$REMOTE" || true
   git config user.name "Router Auto Backup"
   git config user.email "router@local"
 else
-  cd "$REPO_DIR" || exit 1
+  cd "$REPO_DIR"
 fi
 
 # 3) Pull latest (ignore failure on first run)
+echo "[STEP] git pull --rebase origin $BRANCH (ignore first-run failure)"
 git pull --rebase origin "$BRANCH" 2>/dev/null || true
 
-# 4) Copy new backup, add & push
+# 4) Copy, commit, push (with retry)
+echo "[STEP] copy new backup into worktree"
 cp -f "$TMP_DIR/$BACKUP_NAME" "$REPO_DIR/"
+
+echo "[STEP] git add/commit"
 git add "$BACKUP_NAME" || true
 git commit -m "Auto backup on ${DATE}" || true
-git push -u origin "$BRANCH" || true
 
-# 5) Remote retention (>30d): delete via git rm + push
-OLD_LIST=$(find "$REPO_DIR" -maxdepth 1 -type f -name 'immortalwrt_backup_*.tar.gz' -mtime +30)
-if [ -n "$OLD_LIST" ]; then
+echo "[STEP] push with retry"
+attempt=1
+max_attempts=3
+while :; do
+  if git push -u origin "$BRANCH"; then
+    echo "[INFO] push ok"
+    break
+  fi
+  echo "[WARN] push failed (attempt ${attempt}/${max_attempts})"
+  if [ $attempt -ge $max_attempts ]; then
+    echo "[ERROR] push failed after ${max_attempts} attempts"
+    exit 1
+  fi
+  sleep 10
+  attempt=$((attempt+1))
+done
+
+# 5) Remote retention (>30d): git rm + push
+echo "[STEP] remote prune (>30d via git rm + push)"
+OLD_LIST="$(find "$REPO_DIR" -maxdepth 1 -type f -name 'immortalwrt_backup_*.tar.gz' -mtime +30 || true)"
+if [ -n "${OLD_LIST:-}" ]; then
   echo "$OLD_LIST" | while read -r f; do
-    base=$(basename "$f")
+    [ -n "$f" ] || continue
+    base="$(basename "$f")"
     echo "[DEL-REMOTE] $base"
     git rm -f -- "$base" || true
   done
@@ -137,138 +165,172 @@ else
   echo "[INFO] no remote files >30d to prune"
 fi
 
-# 6) Local retention (>7d): delete old files (not staged)
-find "$REPO_DIR" -maxdepth 1 -type f -name 'immortalwrt_backup_*.tar.gz' -mtime +7 -print -exec rm -f {} \;
+# 6) Local retention (>7d)
+echo "[STEP] local prune (>7d via rm only)"
+find "$REPO_DIR" -maxdepth 1 -type f -name 'immortalwrt_backup_*.tar.gz' -mtime +7 -print -exec rm -f {} \; || true
 
-# 7) Cleanup
+# 7) Write state JSON (success only), atomic update
+NOW_EPOCH=$(date +%s)
+NOW_AT="$(date '+%F %T %Z')"
+echo "[STEP] write state to $STATE"
+{
+  echo "{"
+  echo "  \"last_success_at\": \"${NOW_AT}\","
+  echo "  \"last_success_epoch\": ${NOW_EPOCH},"
+  echo "  \"last_cause\": \"${CAUSE}\""
+  echo "}"
+} > "$STATE".tmp
+mv -f "$STATE".tmp "$STATE"
+
+# 8) Cleanup
+echo "[STEP] cleanup TMP_DIR"
 rm -rf "$TMP_DIR"
-echo "[DONE] $BACKUP_NAME (local keep 7d, remote keep 30d)"
-```
 
-保存后赋予执行权限：
+echo "[DONE] $BACKUP_NAME (local keep 7d, remote keep 30d)."
+EOF
 
-```bash
 chmod +x /root/github_backup.sh
 ```
 
+### 5. 写入开机补跑脚本 `/root/github_backup_bootcheck.sh`
 
-## 五、手动测试备份
+逻辑：开机后检查“昨日 15:00”是否已经备份，仅在漏跑时安排一次补跑。
 
 ```bash
-/root/github_backup.sh
-tail -n 50 /root/github_backup.log
+cat > /root/github_backup_bootcheck.sh <<'EOF'
+#!/bin/sh
+# Boot-time check: if yesterday 15:00 backup was missed, schedule a one-shot catch-up 10 minutes after boot.
+
+LOG="/root/github_backup.log"
+STATE="/root/github_backup_state.json"
+SCRIPT="/root/github_backup.sh"
+
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+
+echo "========== BOOTCHECK $(date '+%F %T') ==========" >>"$LOG" 2>&1
+
+# Read last success epoch from JSON (sed without jq)
+LAST_OK=0
+if [ -s "$STATE" ]; then
+  LAST_OK="$(sed -n 's/.*\"last_success_epoch\"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$STATE" | head -n1)"
+  [ -n "$LAST_OK" ] || LAST_OK=0
+fi
+
+NOW=$(date +%s)
+
+# Compute today's 00:00 (local) safely (strip leading zeros to avoid octal)
+H=$(date +%H); M=$(date +%M); S=$(date +%S)
+H=${H#0}; [ -n "$H" ] || H=0
+M=${M#0}; [ -n "$M" ] || M=0
+S=${S#0}; [ -n "$S" ] || S=0
+
+SEC_SINCE=$(( H*3600 + M*60 + S ))
+TODAY0=$(( NOW - SEC_SINCE ))
+
+# Compute yesterday 15:00 (local)
+TODAY_1500=$(( TODAY0 + 15*3600 ))
+YDAY_1500=$(( TODAY_1500 - 86400 ))
+
+echo "[INFO] last_success_epoch=${LAST_OK}  yesterday_15:00=${YDAY_1500}  now=${NOW}  today0=${TODAY0}" >>"$LOG" 2>&1
+
+# If last success < yesterday 15:00, schedule a single catch-up run after 10 minutes
+if [ "$LAST_OK" -lt "$YDAY_1500" ]; then
+  echo "[BOOTCHECK] Missed yesterday's 15:00 backup; scheduling catch-up in 10 minutes." >>"$LOG" 2>&1
+  ( sleep 600; "$SCRIPT" "catchup" >>"$LOG" 2>&1 ) &
+else
+  echo "[BOOTCHECK] No catch-up needed." >>"$LOG" 2>&1
+fi
+EOF
+
+chmod +x /root/github_backup_bootcheck.sh
 ```
 
-日志文件路径：`/root/github_backup.log`
-成功后 GitHub 仓库中会出现最新的 `immortalwrt_backup_YYYYMMDD_HHMMSS.tar.gz`
-
-
-## 六、设置每日 23:00 自动运行
-
-启用并启动定时服务：
+### 6. 定时任务：每天 15:00
 
 ```bash
 /etc/init.d/cron enable
 /etc/init.d/cron start
-```
 
-编辑定时任务：
-
-```bash
 crontab -e
-```
+# 添加或更新：
+0 15 * * * /root/github_backup.sh cron >> /root/github_backup.log 2>&1
 
-添加：
-
-```
-0 23 * * * /root/github_backup.sh
-```
-
-查看状态：
-
-```bash
+/etc/init.d/cron reload
+/etc/init.d/cron restart
 /etc/init.d/cron status
 ```
 
-输出 `running` 即为正常。
-
-
-## 七、查看日志
+### 7. 开机补跑挂载到 `/etc/rc.local`
 
 ```bash
-tail -n 100 /root/github_backup.log
+vi /etc/rc.local
+# 在 exit 0 之前添加：
+/root/github_backup_bootcheck.sh &
+exit 0
+
+reboot   # 重启确认
 ```
 
-日志会记录：
+### 8. 手动验证与排查
 
-* 每次执行时间；
-* 备份文件名；
-* Git 推送和清理结果；
-* 成功结尾 `[DONE] immortalwrt_backup_...`
+```bash
+/root/github_backup.sh manual
+tail -n 80 /root/github_backup.log
+cat /root/github_backup_state.json
 
+rm -f /root/github_backup_state.json
+/root/github_backup_bootcheck.sh
+tail -n 120 /root/github_backup.log
+```
 
+## 日志与常见问题
+- `tail -n 100 /root/github_backup.log`：查看运行时间、cause 标记 (`cron/catchup/manual`)、Push 重试及清理记录。
+- 若断电后没补跑，确认 `rc.local` 是否正确写入并留有换行。
+- Push 失败多见于 SSH 配置或网络波动；日志会记录重试和报错。
 
-## 八、运行逻辑总结
-
-| 阶段        | 动作                        | 说明                          |
-| --------- | ------------------------- | --------------------------- |
-| 生成备份      | `sysupgrade -b`           | 导出路由器配置                     |
-| 推送 GitHub | `git add + push`          | 每天生成一个 tar.gz 上传到 master 分支 |
-| 云端清理      | `git rm + push`           | 删除超过 30 天的备份（同步至 GitHub）    |
-| 本地清理      | `rm -f`                   | 删除超过 7 天的文件（不影响 GitHub）     |
-| 自动执行      | `cron @23:00`             | 每天 23:00 自动运行一次             |
-| 日志输出      | `/root/github_backup.log` | 每次执行结果自动追加                  |
-
----
-
-📦 **最终效果：**
-
-* 每晚 23:00 自动生成并上传系统配置备份；
-* 本地仅保留 7 天文件；
-* GitHub 私有仓库仅保留 30 天文件；
-* 所有操作日志记录在 `/root/github_backup.log`。
+## 预期结果
+- 每天下午依计划生成压缩包并推送至 GitHub。
+- 本地和云端保留周期满足 7/30 天要求。
+- 断电漏跑时只补跑一次，状态文件自动更新。
+- 所有动作可在日志中追溯。
 
 ---
 
 <a id="english"></a>
 [🇨🇳 中文文档](#chinese) | [🇺🇸 English](#english)
 
-# 🌐 ImmortalWrt → GitHub Automatic Backup Tutorial
+# 🌐 ImmortalWrt → GitHub Automatic Backup (Power-Cut Catch-Up)
 
-### (System configuration backup only, local retention: 7 days, cloud retention: 30 days)
+## Overview
+- Runs `sysupgrade -b` every day at **15:00**, pushes the archive to your GitHub repo.
+- Keeps 7 daily archives locally and 30 days on GitHub, pruning the rest automatically.
+- `/root/github_backup_state.json` stores the last successful run; if the previous day’s 15:00 run is missing, a one-shot catch-up fires **10 minutes after boot**.
+- Unified logging at `/root/github_backup.log`, including push retries and cleanup notes.
 
-## Phase 1: Install Required Components
+## Why These Changes
+- **15:00 schedule** avoids midnight jobs and lets you troubleshoot while you are around.
+- **State file + boot checker** make sure catch-up runs only when you truly missed a backup.
+- **Structured logging with retries** keeps a clear audit trail for SSH/network glitches.
+
+## Setup Steps
+
+### 1. Install packages
 
 ```bash
 opkg update
 opkg install git openssh-client openssh-keygen ca-bundle ca-certificates
 ```
 
-## Phase 2: Generate SSH Key and Connect to GitHub
+### 2. Create SSH key and test access
 
 ```bash
 ssh-keygen -t ed25519 -f /root/.ssh/id_ed25519 -N ""
-cat /root/.ssh/id_ed25519.pub
-```
-
-> Copy the output and paste it into
-> **GitHub → Settings → SSH and GPG keys → New SSH Key**
-
-Test connection:
-
-```bash
+cat /root/.ssh/id_ed25519.pub   # Add to GitHub → Settings → SSH and GPG keys
 ssh -T git@github.com
-# If port 22 is blocked, use:
-ssh -T -p 443 git@ssh.github.com
+ssh -T -p 443 git@ssh.github.com   # fallback if port 22 is blocked
 ```
 
-Successful output example:
-
-```
-Hi ronchy2000! You've successfully authenticated, but GitHub does not provide shell access.
-```
-
-## Phase 3: Modify SSH Configuration File (Use Port 443)
+### 3. Force SSH over 443
 
 ```bash
 cat > /root/.ssh/config <<'EOF'
@@ -289,168 +351,57 @@ chmod 600 /root/.ssh/id_ed25519
 chmod 644 /root/.ssh/id_ed25519.pub
 ```
 
-## Phase 4: Automatic Backup Script `/root/github_backup.sh`
+### 4. Backup script `/root/github_backup.sh`
 
-> Script logic:
-> Backup system configuration only (`sysupgrade -b`),
-> Local retention: 7 days,
-> Cloud (GitHub master branch) retention: 30 days.
-> Modify the following line: `REMOTE="git@github.com:ronchy2000/immortalwrt-backup.git"` to your remote repository URL.
+Use the block in the Chinese section above; comments are already in English. Replace `REMOTE=` with your repo URL and mark it executable.
 
-```bash
-# Create automatic sync script file
-sudo nano /root/github_backup.sh
-```
+### 5. Boot catch-up script `/root/github_backup_bootcheck.sh`
 
-File content as follows, remember to replace the remote repository URL!
+Same as in the Chinese section; it only schedules a single catch-up when yesterday 15:00 was missed.
 
-```bash
-#!/bin/sh
-# ImmortalWrt automatic sysconfig backup to GitHub
-# Local retention: 7 days (rm only)
-# Remote retention: 30 days (git rm + push)
-# Author: ronchy2000
-
-PATH=/usr/sbin:/usr/bin:/sbin:/bin
-LOG="/root/github_backup.log"
-mkdir -p "$(dirname "$LOG")"
-exec >>"$LOG" 2>&1
-echo "========== RUN $(date '+%F %T') =========="
-
-set -e
-REPO_DIR="/root/immortalwrt-backup"
-TMP_DIR="/tmp/backup"
-DATE=$(date +"%Y%m%d_%H%M%S")
-BACKUP_NAME="immortalwrt_backup_${DATE}.tar.gz"
-REMOTE="git@github.com:ronchy2000/immortalwrt-backup.git"
-BRANCH="master"
-
-echo "[INFO] TMP_DIR=$TMP_DIR REPO_DIR=$REPO_DIR BACKUP=$BACKUP_NAME"
-
-# 1) Create system backup (sysupgrade -b)
-mkdir -p "$TMP_DIR"
-sysupgrade -b "$TMP_DIR/$BACKUP_NAME"
-
-# 2) Prepare/init repo
-if [ ! -d "$REPO_DIR/.git" ]; then
-  mkdir -p "$REPO_DIR"
-  cd "$REPO_DIR" || exit 1
-  git init
-  git symbolic-ref HEAD refs/heads/$BRANCH
-  git remote add origin "$REMOTE"
-  git config user.name "Router Auto Backup"
-  git config user.email "router@local"
-else
-  cd "$REPO_DIR" || exit 1
-fi
-
-# 3) Pull latest (ignore failure on first run)
-git pull --rebase origin "$BRANCH" 2>/dev/null || true
-
-# 4) Copy new backup, add & push
-cp -f "$TMP_DIR/$BACKUP_NAME" "$REPO_DIR/"
-git add "$BACKUP_NAME" || true
-git commit -m "Auto backup on ${DATE}" || true
-git push -u origin "$BRANCH" || true
-
-# 5) Remote retention (>30d): delete via git rm + push
-OLD_LIST=$(find "$REPO_DIR" -maxdepth 1 -type f -name 'immortalwrt_backup_*.tar.gz' -mtime +30)
-if [ -n "$OLD_LIST" ]; then
-  echo "$OLD_LIST" | while read -r f; do
-    base=$(basename "$f")
-    echo "[DEL-REMOTE] $base"
-    git rm -f -- "$base" || true
-  done
-  if ! git diff --cached --quiet; then
-    git commit -m "Prune backups >30 days on ${DATE}" || true
-    git push origin "$BRANCH" || true
-  fi
-else
-  echo "[INFO] no remote files >30d to prune"
-fi
-
-# 6) Local retention (>7d): delete old files (not staged)
-find "$REPO_DIR" -maxdepth 1 -type f -name 'immortalwrt_backup_*.tar.gz' -mtime +7 -print -exec rm -f {} \;
-
-# 7) Cleanup
-rm -rf "$TMP_DIR"
-echo "[DONE] $BACKUP_NAME (local keep 7d, remote keep 30d)"
-```
-
-After saving, grant execution permissions:
-
-```bash
-chmod +x /root/github_backup.sh
-```
-
-## Phase 5: Manual Backup Test
-
-```bash
-/root/github_backup.sh
-tail -n 50 /root/github_backup.log
-```
-
-Log file path: `/root/github_backup.log`
-After success, the latest `immortalwrt_backup_YYYYMMDD_HHMMSS.tar.gz` will appear in the GitHub repository.
-
-## Phase 6: Set Daily Automatic Execution at 23:00
-
-Enable and start the cron service:
+### 6. Cron job at 15:00
 
 ```bash
 /etc/init.d/cron enable
 /etc/init.d/cron start
-```
 
-Edit cron tasks:
-
-```bash
 crontab -e
-```
+0 15 * * * /root/github_backup.sh cron >> /root/github_backup.log 2>&1
 
-Add:
-
-```
-0 23 * * * /root/github_backup.sh
-```
-
-Check status:
-
-```bash
+/etc/init.d/cron reload
+/etc/init.d/cron restart
 /etc/init.d/cron status
 ```
 
-Output `running` indicates normal operation.
-
-## Phase 7: View Logs
+### 7. Hook boot checker via `/etc/rc.local`
 
 ```bash
-tail -n 100 /root/github_backup.log
+vi /etc/rc.local
+/root/github_backup_bootcheck.sh &
+exit 0
+
+reboot
 ```
 
-The log records:
+### 8. Verify and troubleshoot
 
-* Execution time for each run
-* Backup file name
-* Git push and cleanup results
-* Successful completion message `[DONE] immortalwrt_backup_...`
+```bash
+/root/github_backup.sh manual
+tail -n 80 /root/github_backup.log
+cat /root/github_backup_state.json
 
-## Phase 8: Logic Summary
+rm -f /root/github_backup_state.json
+/root/github_backup_bootcheck.sh
+tail -n 120 /root/github_backup.log
+```
 
-| Phase            | Action                    | Description                                           |
-| ---------------- | ------------------------- | ----------------------------------------------------- |
-| Generate Backup  | `sysupgrade -b`           | Export router configuration                           |
-| Push to GitHub   | `git add + push`          | Upload one tar.gz file daily to master branch         |
-| Cloud Cleanup    | `git rm + push`           | Delete backups older than 30 days (sync to GitHub)    |
-| Local Cleanup    | `rm -f`                   | Delete files older than 7 days (no GitHub impact)     |
-| Auto Execution   | `cron @23:00`             | Runs automatically once daily at 23:00                |
-| Log Output       | `/root/github_backup.log` | Append execution results automatically                |
+## Logs & FAQ
+- Tail the log to confirm run cause, file names, push retries, and cleanup: `tail -n 100 /root/github_backup.log`.
+- No catch-up after a blackout? Re-check the `/etc/rc.local` line and make sure a newline exists at the end.
+- Push failures usually mean SSH/network issues; the log will show each retry and the final error.
 
----
-
-📦 **Final Result:**
-
-* Automatically generate and upload system configuration backup at 23:00 every night
-* Keep only 7 days of files locally
-* Keep only 30 days of files in GitHub private repository
-* All operation logs recorded in `/root/github_backup.log`
+## Expected Outcome
+- Daily backups at 15:00 land in your GitHub repo without manual effort.
+- Local storage and remote retention stay within 7/30-day windows.
+- Power-cut gaps trigger exactly one delayed run, with the state file refreshed on success.
+- You can always audit what happened via `/root/github_backup.log`.
