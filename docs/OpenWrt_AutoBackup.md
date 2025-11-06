@@ -194,12 +194,14 @@ chmod +x /root/github_backup.sh
 
 ### 5. 写入开机补跑脚本 `/root/github_backup_bootcheck.sh`
 
-逻辑：开机后检查“昨日 15:00”是否已经备份，仅在漏跑时安排一次补跑。
+逻辑：开机后检查“昨日或今日 15:00”是否已经备份，仅在漏跑时安排一次补跑。
 
 ```bash
 cat > /root/github_backup_bootcheck.sh <<'EOF'
 #!/bin/sh
-# Boot-time check: if yesterday 15:00 backup was missed, schedule a one-shot catch-up 10 minutes after boot.
+# Boot-time check:
+# If the most recent scheduled 15:00 backup (today or yesterday) was missed,
+# schedule a one-shot catch-up 10 minutes after boot.
 
 LOG="/root/github_backup.log"
 STATE="/root/github_backup_state.json"
@@ -218,7 +220,8 @@ fi
 
 NOW=$(date +%s)
 
-# Compute today's 00:00 (local) safely (strip leading zeros to avoid octal)
+# Compute today's 00:00 (local) in seconds since epoch:
+# Avoid leading-zero octal by stripping zeros explicitly.
 H=$(date +%H); M=$(date +%M); S=$(date +%S)
 H=${H#0}; [ -n "$H" ] || H=0
 M=${M#0}; [ -n "$M" ] || M=0
@@ -226,16 +229,24 @@ S=${S#0}; [ -n "$S" ] || S=0
 
 SEC_SINCE=$(( H*3600 + M*60 + S ))
 TODAY0=$(( NOW - SEC_SINCE ))
-
-# Compute yesterday 15:00 (local)
 TODAY_1500=$(( TODAY0 + 15*3600 ))
 YDAY_1500=$(( TODAY_1500 - 86400 ))
 
-echo "[INFO] last_success_epoch=${LAST_OK}  yesterday_15:00=${YDAY_1500}  now=${NOW}  today0=${TODAY0}" >>"$LOG" 2>&1
+# Determine the most recent scheduled 15:00 slot before or at NOW.
+# If we already passed today's 15:00, the last slot is TODAY_1500; otherwise it's YDAY_1500.
+if [ "$NOW" -ge "$TODAY_1500" ]; then
+  LAST_SLOT="$TODAY_1500"
+  SLOT_LABEL="today_15:00"
+else
+  LAST_SLOT="$YDAY_1500"
+  SLOT_LABEL="yesterday_15:00"
+fi
 
-# If last success < yesterday 15:00, schedule a single catch-up run after 10 minutes
-if [ "$LAST_OK" -lt "$YDAY_1500" ]; then
-  echo "[BOOTCHECK] Missed yesterday's 15:00 backup; scheduling catch-up in 10 minutes." >>"$LOG" 2>&1
+echo "[INFO] last_success_epoch=${LAST_OK}  last_slot(${SLOT_LABEL})=${LAST_SLOT}  now=${NOW}" >>"$LOG" 2>&1
+
+# If last success < last scheduled slot, schedule a single catch-up run after 10 minutes
+if [ "$LAST_OK" -lt "$LAST_SLOT" ]; then
+  echo "[BOOTCHECK] Missed the last scheduled 15:00 backup (${SLOT_LABEL}); scheduling catch-up in 10 minutes." >>"$LOG" 2>&1
   ( sleep 600; "$SCRIPT" "catchup" >>"$LOG" 2>&1 ) &
 else
   echo "[BOOTCHECK] No catch-up needed." >>"$LOG" 2>&1
