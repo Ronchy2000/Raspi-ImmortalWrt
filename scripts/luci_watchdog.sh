@@ -1,6 +1,10 @@
 #!/bin/sh
-# LuCI 看门狗 - 检测并自动修复 LuCI 问题
-# 每5分钟运行一次
+# LuCI Watchdog
+# Description:
+#   - Monitors the availability of the LuCI Web Interface.
+#   - Checks uhttpd process, CGI permissions, and HTTP response.
+#   - Automatically fixes permissions and restarts uhttpd if needed.
+# Schedule: Runs every 5 minutes via cron.
 
 LOG="/root/luci_watchdog.log"
 DATE=$(date "+%Y-%m-%d %H:%M:%S")

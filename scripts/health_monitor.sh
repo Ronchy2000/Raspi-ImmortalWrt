@@ -1,5 +1,12 @@
 #!/bin/sh
-# 系统健康监控脚本
+# System Health Monitor
+# Description: 
+#   - Checks memory usage (>90% triggers alert).
+#   - Verifies critical services (openclash, uhttpd, network, dnsmasq).
+#   - Monitors network connection count.
+#   - Auto-restarts failed services.
+# Schedule: Runs every 30 minutes via cron.
+
 LOG="/root/health_monitor.log"
 DATE=$(date "+%Y-%m-%d %H:%M:%S")
 

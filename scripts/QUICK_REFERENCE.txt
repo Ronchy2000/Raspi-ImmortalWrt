@@ -1,0 +1,33 @@
+=============================================================================
+   RASPI IMMORTALWRT - QUICK REFERENCE
+=============================================================================
+
+[ SYSTEM STATUS ]
+  uptime                  : Show system uptime and load
+  free -h                 : Show memory usage
+  df -h                   : Show disk usage
+  logread | tail -50      : Show system logs
+
+[ SERVICE MANAGEMENT ]
+  /etc/init.d/openclash restart   : Restart OpenClash (Fix network issues)
+  /etc/init.d/uhttpd restart      : Restart Web Interface (LuCI)
+  /etc/init.d/network restart     : Restart Network
+
+[ AUTOMATION SCRIPTS ]
+  /root/health_monitor.sh : Checks memory & services (Runs every 30m)
+  /root/luci_watchdog.sh  : Checks Web UI availability (Runs every 5m)
+  /root/smart_backup.sh   : Smart Backup to GitHub (Runs daily at 15:00)
+
+[ BACKUP ]
+  Manual Run              : /root/smart_backup.sh
+  View Log                : tail -50 /root/smart_backup.log
+  Repo URL                : https://github.com/Ronchy2000/Immortalwrt-AutoBackup
+
+[ LOGS ]
+  Health Log              : tail -50 /root/health_monitor.log
+  Watchdog Log            : tail -50 /root/luci_watchdog.log
+  Backup Log              : tail -50 /root/smart_backup.log
+
+=============================================================================
+  Full Documentation: https://github.com/Ronchy2000/Raspi-ImmortalWrt
+=============================================================================
