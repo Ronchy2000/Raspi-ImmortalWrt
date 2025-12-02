@@ -69,15 +69,19 @@
   - 家庭或校园网拨号：[docs/PPPoE_Connection.md](docs/PPPoE_Connection.md)
 
 3. OpenWrt备份与恢复：
-如果您有备份和恢复的需求：
+系统已配置自动备份，每天 15:00 自动备份到 GitHub。详见：
   - 手动备份与恢复请见：[docs/OpenWrt_Backup&Resotre.md](docs/OpenWrt_Backup&Resotre.md)
-
   - 定时自动备份设置：[docs/OpenWrt_AutoBackup.md](docs/OpenWrt_AutoBackup.md)
 
-4. 软件空间扩容
+4. **系统监控与维护** 🔥
+  - 完整维护指南：[docs/System_Maintenance.md](docs/System_Maintenance.md)
+  - 监控脚本说明：[scripts/README.md](scripts/README.md)
+  - 快速参考：[系统监控与维护](#系统监控与维护)
+
+5. 软件空间扩容
   - 扩容Overlay空间：[docs/ExtendOverlaySize.md](docs/ExtendOverlaySize.md)
 
-5. Openclash科学上网设置
+6. Openclash科学上网设置
   - 科学上网插件配置：[Openclash_Config](Openclash_Config)
 
 ---
@@ -89,21 +93,21 @@
 # 硬件环境
 
 - 设备：Raspberry Pi 4B/400/CM4 (64bit)
+- 系统版本：ImmortalWrt 24.10.3 r33451-5531f6bc76a3
+- 架构：aarch64_cortex-a72 (bcm27xx/bcm2711)
 
-<!-- ```bash
+```bash
 # 确认当前版本/平台
 cat /etc/openwrt_release; uname -m
-# 执行效果
-# root@ImmortalWrt:/# cat /etc/openwrt_release; uname -m
+# 输出示例：
 # DISTRIB_ID='ImmortalWrt'
-# DISTRIB_RELEASE='24.10.0'
-# DISTRIB_REVISION='r32824-6a73dae98c9c'
+# DISTRIB_RELEASE='24.10.3'
+# DISTRIB_REVISION='r33451-5531f6bc76a3'
 # DISTRIB_TARGET='bcm27xx/bcm2711'
 # DISTRIB_ARCH='aarch64_cortex-a72'
-# DISTRIB_DESCRIPTION='ImmortalWrt 24.10.0 r32824-6a73dae98c9c'
-# DISTRIB_TAINTS=''
+# DISTRIB_DESCRIPTION='ImmortalWrt 24.10.3 r33451-5531f6bc76a3'
 # aarch64
-``` -->
+```
 
 <a id="firmware_selection_cn"></a>
 ## 固件选择
@@ -252,12 +256,111 @@ cat /etc/openwrt_release; uname -m
 
 希望这份配置指南能对你有所帮助！如有问题，欢迎在评论区交流讨论。
 
-# 其他
-## OpenWrt备份与恢复：
-如果您有备份和恢复的需求：
-- 手动备份与恢复请见：[docs/OpenWrt_Backup&Resotre.md](docs/OpenWrt_Backup&Resotre.md)
+# 系统监控与维护
 
-- 定时自动备份设置：[docs/OpenWrt_AutoBackup.md](docs/OpenWrt_AutoBackup.md)
+> 📚 **完整文档**: [System_Maintenance.md](docs/System_Maintenance.md) | 🛠️ **脚本说明**: [scripts/README.md](scripts/README.md)
+
+系统已配置完善的自动化监控，确保稳定运行。
+
+## 监控概览
+
+| 监控项目 | 频率 | 脚本 | 功能 |
+|---------|------|------|------|
+| 🏥 健康检查 | 每30分钟 | `health_monitor.sh` | 内存/服务/连接数监控，异常自动处理 |
+| 👁️ LuCI看门狗 | 每5分钟 | `luci_watchdog.sh` | Web界面自动修复 |
+| 💾 系统备份 | 每天15:00 | `github_backup_optimized.sh` | GitHub自动备份 (本地3份+远程30天) |
+| 🔄 OpenClash更新 | 每周 | 官方脚本 | 规则/IP库/GeoData自动更新 |
+
+## 快速命令
+
+```bash
+# 查看系统状态
+ssh root@192.168.1.1 "uptime && free -h && df -h"
+
+# 查看监控日志
+ssh root@192.168.1.1 "tail -50 /root/health_monitor.log"
+
+# 手动触发备份
+ssh root@192.168.1.1 "/root/github_backup.sh manual"
+
+# 重启服务
+ssh root@192.168.1.1 "/etc/init.d/openclash restart"
+ssh root@192.168.1.1 "/etc/init.d/uhttpd restart"
+```
+
+## 常见问题
+
+<details>
+<summary><b>❌ haproxy 崩溃循环</b> (系统日志: "haproxy is in a crash loop")</summary>
+
+**原因**: haproxy 配置的后端服务器不存在
+
+**解决**:
+```bash
+ssh root@192.168.1.1 "/etc/init.d/haproxy stop && /etc/init.d/haproxy disable"
+```
+</details>
+
+<details>
+<summary><b>🌐 WiFi连接但无网络</b></summary>
+
+```bash
+ssh root@192.168.1.1 "/etc/init.d/openclash restart"
+```
+</details>
+
+<details>
+<summary><b>💻 LuCI 无法访问</b></summary>
+
+```bash
+ssh root@192.168.1.1 "/etc/init.d/uhttpd restart"
+```
+
+查看LuCI看门狗日志：
+```bash
+ssh root@192.168.1.1 "tail -20 /root/luci_watchdog.log"
+```
+</details>
+
+<details>
+<summary><b>💿 SD卡寿命担忧</b></summary>
+
+系统已优化：
+- 每天写入: ~65MB
+- 年写入量: ~24GB (仅占SD卡容量75%)
+- 预计寿命: 13.5年+ (远超5年目标) ✅
+
+详见: [System_Maintenance.md#SD卡寿命优化](docs/System_Maintenance.md#sd卡寿命优化)
+</details>
+
+## 部署监控脚本
+
+如需在新系统部署监控脚本，使用项目中的脚本：
+
+```bash
+# 从项目目录执行
+cd Raspi-ImmortalWrt/scripts
+
+# 复制脚本到路由器
+scp health_monitor.sh luci_watchdog.sh github_backup_optimized.sh root@192.168.1.1:/root/
+
+# 设置权限并配置定时任务
+ssh root@192.168.1.1 << 'EOF'
+chmod +x /root/*.sh
+crontab -l | grep -v "health_monitor\|luci_watchdog\|github_backup" > /tmp/cron.tmp
+cat >> /tmp/cron.tmp << 'CRON'
+*/30 * * * * /root/health_monitor.sh
+*/5 * * * * /root/luci_watchdog.sh
+0 15 * * * /root/github_backup_optimized.sh cron >> /root/github_backup.log 2>&1
+CRON
+crontab /tmp/cron.tmp && rm /tmp/cron.tmp
+echo "✅ 监控脚本已部署"
+EOF
+```
+
+详见: [scripts/README.md](scripts/README.md)
+
+---
 
 ## 软件空间扩容
 - 扩容Overlay空间：[docs/ExtendOverlaySize.md](docs/ExtendOverlaySize.md)
