@@ -10,9 +10,9 @@ PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
 LOG="/root/github_backup.log"
 STATE="/root/github_backup_state.json"
-REPO_DIR="/root/immortalwrt-backup"
+REPO_DIR="/root/Immortalwrt-AutoBackup"
 TMP_DIR="/tmp/backup"  # tmpfs，内存中，不写 SD 卡
-REMOTE="git@github.com:ronchy2000/immortalwrt-backup.git"
+REMOTE="git@github.com:Ronchy2000/Immortalwrt-AutoBackup.git"
 BRANCH="master"
 
 CAUSE="${1:-manual}"

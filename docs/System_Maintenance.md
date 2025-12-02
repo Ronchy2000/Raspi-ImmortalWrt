@@ -341,7 +341,7 @@ free -h
 
 ```bash
 # 1. 验证备份
-# 访问 GitHub 仓库: https://github.com/ronchy2000/immortalwrt-backup
+# 访问 GitHub 仓库: https://github.com/Ronchy2000/Immortalwrt-AutoBackup
 
 # 2. 清理日志 (可选)
 > /root/health_monitor.log
@@ -446,9 +446,9 @@ tail -50 /root/github_backup.log
 ## 联系和支持
 
 - **SSH登录**: `ssh root@192.168.1.1`
-- **密码**: lrq200075
+- **密码**: (请咨询管理员)
 - **Web管理**: http://192.168.1.1
-- **备份仓库**: https://github.com/ronchy2000/immortalwrt-backup
+- **备份仓库**: https://github.com/Ronchy2000/Immortalwrt-AutoBackup
 
 ---
 

@@ -148,7 +148,7 @@ ssh root@192.168.1.1 "crontab -l"
 ### 查看备份状态
 ```bash
 ssh root@192.168.1.1 "cat /root/github_backup_state.json"
-ssh root@192.168.1.1 "ls -lh /root/immortalwrt-backup/*.tar.gz"
+ssh root@192.168.1.1 "ls -lh /root/Immortalwrt-AutoBackup/*.tar.gz"
 ```
 
 ---
@@ -205,7 +205,7 @@ ssh root@192.168.1.1 "/etc/init.d/cron restart"
 ssh root@192.168.1.1 "tail -100 /root/github_backup.log"
 
 # 检查 Git 配置
-ssh root@192.168.1.1 "cd /root/immortalwrt-backup && git remote -v"
+ssh root@192.168.1.1 "cd /root/Immortalwrt-AutoBackup && git remote -v"
 
 # 手动测试备份
 ssh root@192.168.1.1 "/root/github_backup_optimized.sh test"

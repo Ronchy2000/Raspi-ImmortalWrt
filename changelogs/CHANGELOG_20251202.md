@@ -206,7 +206,7 @@ ssh root@192.168.1.1 "tail -100 /root/health_monitor.log > /tmp/h.log && mv /tmp
 
 3. **备份安全**: 
    - 项目文档: GitHub版本控制
-   - 系统配置: 每天15:00自动备份到 immortalwrt-backup 仓库
+   - 系统配置: 每天15:00自动备份到 Immortalwrt-AutoBackup 仓库
    - 双重保障
 
 4. **监控脚本**: 已部署且正常运行，无需手动干预
@@ -235,8 +235,8 @@ ssh root@192.168.1.1 "tail -100 /root/health_monitor.log > /tmp/h.log && mv /tmp
 
 ## 🔗 相关链接
 
-- **项目仓库**: https://github.com/ronchy2000/Raspi-ImmortalWrt
-- **备份仓库**: https://github.com/ronchy2000/immortalwrt-backup
+- **项目仓库**: https://github.com/Ronchy2000/Raspi-ImmortalWrt
+- **备份仓库**: https://github.com/Ronchy2000/Immortalwrt-AutoBackup
 - **ImmortalWrt 官网**: https://immortalwrt.org/
 
 ---

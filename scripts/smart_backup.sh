@@ -10,8 +10,8 @@
 set -e
 
 # --- Configuration ---
-BACKUP_DIR="/root/immortalwrt-backup"
-GIT_REMOTE="git@github.com:ronchy2000/immortalwrt-backup.git"
+BACKUP_DIR="/root/Immortalwrt-AutoBackup"
+GIT_REMOTE="git@github.com:Ronchy2000/Immortalwrt-AutoBackup.git"
 BRANCH="master"
 TMP_DIR="/tmp/smart_backup_tmp"
 LOG_FILE="/root/smart_backup.log"
