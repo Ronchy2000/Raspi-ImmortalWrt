@@ -16,6 +16,7 @@ BRANCH="master"
 TMP_DIR="/tmp/smart_backup_tmp"
 LOG_FILE="/root/smart_backup.log"
 MAX_LOCAL_BACKUPS=3
+MAX_REMOTE_BACKUPS=30
 # ---------------------
 
 # Logging function
@@ -29,7 +30,71 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# --- Stability Checks ---
+
+wait_for_uptime() {
+    # Ensure system has been up for at least 10 minutes (600 seconds) to allow services to settle
+    local min_uptime=600
+    local current_uptime=$(cat /proc/uptime | awk '{print int($1)}')
+    
+    if [ "$current_uptime" -lt "$min_uptime" ]; then
+        local wait_time=$((min_uptime - current_uptime))
+        log "System uptime is less than 10 minutes. Waiting ${wait_time}s for system stability..."
+        sleep "$wait_time"
+        log "System stability wait complete."
+    else
+        log "System uptime is sufficient (>10m)."
+    fi
+}
+
+wait_for_network() {
+    log "Checking network connectivity..."
+    local max_retries=30
+    local count=0
+    while [ $count -lt $max_retries ]; do
+        # Use 8.8.8.8 (Google DNS) or 223.5.5.5 (AliDNS) for connectivity check
+        # Avoid pinging github.com directly as it may resolve to a FakeIP (OpenClash) that drops ICMP
+        if ping -c 1 8.8.8.8 >/dev/null 2>&1 || ping -c 1 223.5.5.5 >/dev/null 2>&1; then
+            log "Network is UP."
+            return 0
+        fi
+        log "Network unreachable, waiting 10s... ($((count+1))/$max_retries)"
+        sleep 10
+        count=$((count+1))
+    done
+    log "Error: Network unreachable after $((max_retries*10)) seconds."
+    return 1
+}
+
+wait_for_time_sync() {
+    log "Checking system time..."
+    # Simple check: if year is less than 2024, time is likely wrong (reset to epoch/build time)
+    local current_year=$(date +%Y)
+    local max_retries=12
+    local count=0
+    
+    while [ "$current_year" -lt 2024 ] && [ $count -lt $max_retries ]; do
+        log "System time seems incorrect ($current_year), waiting for NTP... ($((count+1))/$max_retries)"
+        sleep 10
+        current_year=$(date +%Y)
+        count=$((count+1))
+    done
+
+    if [ "$current_year" -lt 2024 ]; then
+        log "Warning: System time still seems incorrect. Proceeding anyway, but timestamps may be wrong."
+    else
+        log "System time is valid."
+    fi
+}
+
+# ------------------------
+
 log "========== Starting Smart Backup =========="
+
+# 0. Ensure Stability
+wait_for_uptime
+wait_for_time_sync
+wait_for_network || { log "Aborting backup due to network failure."; exit 1; }
 
 # 1. Prepare Environment
 mkdir -p "$BACKUP_DIR"
@@ -106,9 +171,22 @@ git add "$ARCHIVE_NAME"
 
 # Prune old local tarballs (Keep only last N)
 # This prevents the repo folder from growing indefinitely with binary files
+# We also use this list to prune remote files (since we push what we have locally)
+# Actually, for remote pruning, we need to check what is tracked in git.
+
+# 7.1 Local Pruning (Filesystem)
 find . -maxdepth 1 -name "backup_*.tar.gz" -type f | sort | head -n -"$MAX_LOCAL_BACKUPS" | while read -r file; do
-    log "Pruning old local backup: $file"
-    git rm "$file" >/dev/null 2>&1 || rm "$file"
+    log "Pruning old local backup file: $file"
+    rm -f "$file"
+done
+
+# 7.2 Git Pruning (Remote Retention)
+# We want to keep only the last MAX_REMOTE_BACKUPS tarballs in the git history/repo
+# List all tracked tarballs, sort them, and remove the oldest ones
+log "Checking remote retention policy (Keep last $MAX_REMOTE_BACKUPS)..."
+git ls-files "backup_*.tar.gz" | sort | head -n -"$MAX_REMOTE_BACKUPS" | while read -r file; do
+    log "Pruning old remote backup: $file"
+    git rm "$file" >/dev/null 2>&1 || true
 done
 
 # 8. Commit and Push
