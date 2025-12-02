@@ -406,13 +406,10 @@ ip addr show
 ### 备份相关
 ```bash
 # 手动备份
-/root/github_backup.sh manual
-
-# 查看备份状态
-cat /root/github_backup_state.json
+/root/smart_backup.sh
 
 # 查看备份日志
-tail -50 /root/github_backup.log
+tail -50 /root/smart_backup.log
 ```
 
 ---
@@ -425,9 +422,8 @@ tail -50 /root/github_backup.log
 ├── health_monitor.log             # 监控日志
 ├── luci_watchdog.sh               # LuCI看门狗
 ├── luci_watchdog.log              # 看门狗日志
-├── github_backup_optimized.sh     # 优化备份脚本
-├── github_backup.log              # 备份日志
-├── github_backup_state.json       # 备份状态
+├── smart_backup.sh                # 智能备份脚本
+├── smart_backup.log               # 备份日志
 ├── immortalwrt-backup/            # Git备份仓库
 ├── QUICK_REFERENCE.txt            # 快速参考 (系统内)
 ├── SD_CARD_OPTIMIZATION_SUMMARY.txt  # SD卡优化说明 (系统内)
@@ -532,7 +528,7 @@ Raspi-ImmortalWrt/
     ├── README.md                      # 脚本说明 (NEW)
     ├── health_monitor.sh              # 健康监控 (NEW)
     ├── luci_watchdog.sh               # LuCI看门狗 (NEW)
-    └── github_backup_optimized.sh     # 优化备份 (NEW)
+    └── smart_backup.sh                # 智能备份 (NEW)
 ```
 
 ### 系统中 (OpenWrt)
@@ -542,14 +538,11 @@ Raspi-ImmortalWrt/
 ├── 运行脚本/
 │   ├── health_monitor.sh              # 从项目部署
 │   ├── luci_watchdog.sh               # 从项目部署
-│   ├── github_backup_optimized.sh     # 从项目部署
-│   └── github_backup.sh               # 兼容性保留
+│   └── smart_backup.sh                # 从项目部署
 ├── 日志文件/
 │   ├── health_monitor.log
 │   ├── luci_watchdog.log
-│   └── github_backup.log
-├── 状态文件/
-│   └── github_backup_state.json
+│   └── smart_backup.log
 └── 快速参考/ (可选)
     └── QUICK_REFERENCE.txt            # SSH后快速查看
 ```

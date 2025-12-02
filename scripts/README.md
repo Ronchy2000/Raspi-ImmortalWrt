@@ -1,18 +1,21 @@
 <a id="chinese"></a>
 [🇨🇳 中文文档](#chinese) | [🇺🇸 English](#english)
 
-# 🌐 ImmortalWrt → GitHub 自动备份（含断电补跑）
+# 🌐 ImmortalWrt → 智能自动备份 (Smart Backup)
 
 ## 概览
-- 每天 **15:00** 运行 `sysupgrade -b`，将配置包推到自己的 GitHub 仓库。
-- 本地保留 7 天压缩包，仓库保留 30 天；旧文件自动清理不占空间。
-- `/root/github_backup_state.json` 记录最近一次成功时间，断电漏跑时，上电 **10 分钟后** 自动补跑 **一次**。
-- `/root/github_backup.log` 汇总全部日志，含 Push 重试信息和清理动作。
+- **脚本名称**: `/root/smart_backup.sh`
+- **运行时间**: 每天 **15:00** 自动运行。
+- **核心逻辑**: **按需备份**。智能识别 `/etc/config` 变更，只有配置发生变化时才执行备份和推送。
+- **双重存档**: 同时保存 `sysupgrade` 恢复包 (`.tar.gz`) 和明文配置 (`configs/`)，便于追踪变更历史。
+- **保留策略**: 本地保留最近 **3份**，GitHub 仓库保留最近 **30份**。
+- **稳定性检查**: 内置开机时长检测 (>10分钟)、NTP 时间同步检查和网络连通性检查。
 
 ## 为什么要这样做
-- **改到 15:00**：避开凌晨扫尾任务，也便于白天排障。
-- **状态文件 + 补跑脚本**：记录成功时间，确保只在确实漏掉日常备份时才补一次。
-- **统一日志 & Push 重试**：及时发现 SSH/网络问题，不会因偶发失败就丢备份。
+- **避免冗余**: 只有配置变了才备份，节省存储空间，减少无效提交。
+- **版本管理**: 自动提取配置文件到 Git，可以清晰地看到每次修改了哪些配置项 (Diff)。
+- **语义化提交**: 自动生成 Commit Message (如 `Update: network, wireless`)，一目了然。
+- **智能补跑**: 配合 `rc.local` 开机自启，脚本会自动判断运行时间，确保在系统稳定后执行，防止漏跑。
 
 ## 部署步骤
 
@@ -53,51 +56,34 @@ chmod 600 /root/.ssh/id_ed25519
 chmod 644 /root/.ssh/id_ed25519.pub
 ```
 
-### 4. 写入备份脚本 `/root/github_backup.sh`
+### 4. 部署备份脚本 `/root/smart_backup.sh`
 
-主要逻辑：生成备份 → 同步仓库 → 推送 → 清理旧文件 → 更新状态。改成你的仓库地址即可。
+请参考项目 `scripts/smart_backup.sh` 获取最新代码。
+
+主要逻辑：
+1. **稳定性检查**: 等待系统启动 > 10分钟，等待网络连通。
+2. **生成备份**: 在 `/tmp` 生成临时备份。
+3. **差异比对**: 解压备份，对比 `/etc/config` 与 Git 仓库中的版本。
+4. **执行备份**:
+   - **有变更**: 提交变更 (Git Commit) -> 推送 (Git Push) -> 清理旧备份。
+   - **无变更**: 输出日志，跳过备份。
+
+### 5. 配置定时任务
 
 ```bash
-cat > /root/github_backup.sh <<'EOF'
-#!/bin/sh
-# ImmortalWrt automatic sysconfig backup to GitHub
-# Local retention: 7 days (rm only)
-# Remote retention: 30 days (git rm + push)
-# Adds: state JSON, better logging, push retry, explicit cause tag
-# Author: ronchy2000 + enhancements
+# 每天 15:00 执行
+echo "0 15 * * * /root/smart_backup.sh >> /root/smart_backup.log 2>&1" >> /etc/crontabs/root
+/etc/init.d/cron restart
+```
 
-set -eu
+### 6. 配置开机自检 (可选)
 
-PATH=/usr/sbin:/usr/bin:/sbin:/bin
+为了防止 15:00 关机导致错过备份，建议在 `/etc/rc.local` 中添加启动执行。脚本内置了变更检测，即使多次运行也不会产生重复备份。
 
-LOG="/root/github_backup.log"
-STATE="/root/github_backup_state.json"
-REPO_DIR="/root/immortalwrt-backup"
-TMP_DIR="/tmp/backup"
-REMOTE="git@github.com:YOUR-USER/YOUR-REPO.git"   # <-- change to your repo
-BRANCH="master"
-
-# Cause marker for logging/state, e.g. "cron" | "catchup" | "manual"
-CAUSE="${1:-manual}"
-
-mkdir -p "$(dirname "$LOG")"
-# Append logging to file
-exec >>"$LOG" 2>&1
-echo "========== RUN $(date '+%F %T') (cause=${CAUSE}) =========="
-
-# Basic error handler (keeps trace in log)
-on_error() {
-  code=$?
-  line=${1:-?}
-  echo "[ERROR] exit=$code at line=${line}"
-  exit $code
-}
-trap 'on_error $LINENO' ERR
-
-DATE="$(date +"%Y%m%d_%H%M%S")"
-BACKUP_NAME="immortalwrt_backup_${DATE}.tar.gz"
-
-echo "[INFO] TMP_DIR=$TMP_DIR  REPO_DIR=$REPO_DIR  BACKUP=$BACKUP_NAME  BRANCH=$BRANCH"
+```bash
+# 编辑 /etc/rc.local，在 exit 0 之前添加：
+/root/smart_backup.sh &
+```
 
 # 1) Create system backup archive
 mkdir -p "$TMP_DIR"

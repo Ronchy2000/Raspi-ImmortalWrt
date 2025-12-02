@@ -32,7 +32,7 @@ scripts/
 ├── README.md                      # 脚本使用说明
 ├── health_monitor.sh              # 系统健康监控
 ├── luci_watchdog.sh               # LuCI看门狗
-└── github_backup_optimized.sh     # 优化备份脚本
+└── smart_backup.sh                # 智能备份脚本
 ```
 
 #### `scripts/README.md`

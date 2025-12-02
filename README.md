@@ -269,7 +269,7 @@ cat /etc/openwrt_release; uname -m
 |---------|------|------|------|
 | 🏥 健康检查 | 每30分钟 | `health_monitor.sh` | 内存/服务/连接数监控，异常自动处理 |
 | 👁️ LuCI看门狗 | 每5分钟 | `luci_watchdog.sh` | Web界面自动修复 |
-| 💾 系统备份 | 每天15:00 | `github_backup_optimized.sh` | GitHub自动备份 (本地3份+远程30天) |
+| 💾 系统备份 | 每天15:00 | `smart_backup.sh` | 智能按需备份 (本地3份+远程30天) |
 | 🔄 OpenClash更新 | 每周 | 官方脚本 | 规则/IP库/GeoData自动更新 |
 
 ## 快速命令
@@ -282,7 +282,7 @@ ssh root@192.168.1.1 "uptime && free -h && df -h"
 ssh root@192.168.1.1 "tail -50 /root/health_monitor.log"
 
 # 手动触发备份
-ssh root@192.168.1.1 "/root/github_backup.sh manual"
+ssh root@192.168.1.1 "/root/smart_backup.sh"
 
 # 重启服务
 ssh root@192.168.1.1 "/etc/init.d/openclash restart"
@@ -343,16 +343,16 @@ ssh root@192.168.1.1 "tail -20 /root/luci_watchdog.log"
 cd Raspi-ImmortalWrt/scripts
 
 # 复制脚本到路由器
-scp health_monitor.sh luci_watchdog.sh github_backup_optimized.sh root@192.168.1.1:/root/
+scp health_monitor.sh luci_watchdog.sh smart_backup.sh root@192.168.1.1:/root/
 
 # 设置权限并配置定时任务
 ssh root@192.168.1.1 << 'EOF'
 chmod +x /root/*.sh
-crontab -l | grep -v "health_monitor\|luci_watchdog\|github_backup" > /tmp/cron.tmp
+crontab -l | grep -v "health_monitor\|luci_watchdog\|smart_backup" > /tmp/cron.tmp
 cat >> /tmp/cron.tmp << 'CRON'
 */30 * * * * /root/health_monitor.sh
 */5 * * * * /root/luci_watchdog.sh
-0 15 * * * /root/github_backup_optimized.sh cron >> /root/github_backup.log 2>&1
+0 15 * * * /root/smart_backup.sh >> /root/smart_backup.log 2>&1
 CRON
 crontab /tmp/cron.tmp && rm /tmp/cron.tmp
 echo "✅ 监控脚本已部署"
