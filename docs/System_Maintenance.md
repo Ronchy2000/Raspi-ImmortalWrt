@@ -61,13 +61,26 @@ tail -50 /root/health_monitor.log
 tail -50 /root/luci_watchdog.log
 ```
 
-### 3. 自动备份 (每天15:00)
+### 3. 智能备份 (Smart Backup)
 
-**脚本位置**: `/root/github_backup_optimized.sh`
+**脚本位置**: `/root/smart_backup.sh` (替代旧版 `github_backup_optimized.sh`)
 
-**备份特性**:
-- 使用 tmpfs 减少 SD 卡写入
-- 本地保留最新 3 份备份
+**核心特性**:
+- **按需备份**: 智能识别 `/etc/config` 变更，无修改不备份。
+- **变更追踪**: 自动提取配置文件到 Git，实现代码级的配置版本管理。
+- **语义化提交**: 自动生成 Commit Message (如 `Update: network, wireless`)。
+- **双重存档**: 同时保存 `sysupgrade` 恢复包 (tar.gz) 和明文配置 (configs/)。
+
+**工作流程**:
+1. 生成备份到内存 (`/tmp`)。
+2. 解压并比对配置差异。
+3. 若有变更 -> 提交 Git (包含变更列表) -> 推送 GitHub。
+4. 若无变更 -> 跳过，节省空间。
+
+**查看日志**:
+```bash
+tail -50 /root/smart_backup.log
+```
 - GitHub 远程保留 30 天
 - 自动重试机制 (最多3次)
 

@@ -48,6 +48,18 @@ scripts/
 **优化的章节**：
 - 更新系统版本信息 (24.10.3)
 - 重构"系统监控与维护"章节
+
+### 4. 智能备份系统升级 (Smart Backup)
+
+**新增功能**:
+- **按需备份**: 只有当 `/etc/config` 发生实质性变更时才触发备份，避免产生无意义的重复备份。
+- **变更追踪**: 自动提取配置文件到 Git 仓库，实现配置文件的版本控制和差异对比。
+- **智能提交**: 自动生成包含变更模块列表的 Commit Message (如 `Update: network, wireless`)。
+- **脚本**: 新增 `scripts/smart_backup.sh`，替代原有的 `github_backup_optimized.sh`。
+
+**文档更新**:
+- 更新 `docs/System_Maintenance.md` 增加智能备份说明。
+- 更新 `README.md` 关联新备份策略。
   - 添加监控概览表格
   - 整合快速命令
   - 添加常见问题折叠面板

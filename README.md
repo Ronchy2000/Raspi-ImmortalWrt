@@ -48,14 +48,14 @@
   <tr>
     <td align="center">📝</td>
     <td><b>完整配置教程</b><br/>从零开始的详细步骤</td>
-    <td align="center">🛠️</td>
-    <td><b>实用工具集合</b><br/>烧录、备份、扩容工具</td>
   </tr>
   <tr>
-    <td align="center">🌐</td>
-    <td><b>科学上网方案</b><br/>OpenClash配置优化</td>
-    <td align="center">📊</td>
-    <td><b>自动化脚本</b><br/>备份、更新一键完成</td>
+    <td align="center">🤖</td>
+    <td><b>智能运维脚本</b><br/>自动监控、智能备份、故障自愈</td>
+  </tr>
+  <tr>
+    <td align="center">📦</td>
+    <td><b>常用工具集</b><br/>一键安装、备份恢复脚本</td>
   </tr>
 </table>
 
@@ -69,9 +69,10 @@
   - 家庭或校园网拨号：[docs/PPPoE_Connection.md](docs/PPPoE_Connection.md)
 
 3. OpenWrt备份与恢复：
-系统已配置自动备份，每天 15:00 自动备份到 GitHub。详见：
-  - 手动备份与恢复请见：[docs/OpenWrt_Backup&Resotre.md](docs/OpenWrt_Backup&Resotre.md)
-  - 定时自动备份设置：[docs/OpenWrt_AutoBackup.md](docs/OpenWrt_AutoBackup.md)
+系统已升级为**智能备份**策略，仅在配置变更时触发备份，并自动记录变更详情。
+  - 智能备份原理与配置：[docs/System_Maintenance.md#智能备份-smart-backup](docs/System_Maintenance.md#智能备份-smart-backup)
+  - 手动备份与恢复：[docs/OpenWrt_Backup&Resotre.md](docs/OpenWrt_Backup&Resotre.md)
+  - 旧版自动备份参考：[docs/OpenWrt_AutoBackup.md](docs/OpenWrt_AutoBackup.md)
 
 4. **系统监控与维护** 🔥
   - 完整维护指南：[docs/System_Maintenance.md](docs/System_Maintenance.md)
