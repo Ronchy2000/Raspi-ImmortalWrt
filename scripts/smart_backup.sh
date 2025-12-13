@@ -9,15 +9,21 @@
 
 set -e
 
-# --- Configuration ---
+# --- Configuration (MODIFY THESE) ---
+# 1. Update BACKUP_DIR to your preferred local backup directory
 BACKUP_DIR="/root/Immortalwrt-AutoBackup"
-GIT_REMOTE="git@github.com:Ronchy2000/Immortalwrt-AutoBackup.git"
+
+# 2. Update GIT_REMOTE to your GitHub backup repository
+# Format: git@github.com:YOUR_USERNAME/YOUR_REPO.git
+GIT_REMOTE="git@github.com:YOUR_USERNAME/YOUR_BACKUP_REPO.git"
+
+# 3. Configure backup retention policy
 BRANCH="master"
 TMP_DIR="/tmp/smart_backup_tmp"
 LOG_FILE="/root/smart_backup.log"
-MAX_LOCAL_BACKUPS=3
-MAX_REMOTE_BACKUPS=30
-# ---------------------
+MAX_LOCAL_BACKUPS=3    # Keep last 3 backups locally
+MAX_REMOTE_BACKUPS=30  # Keep last 30 backups on GitHub
+# ------------------------------------
 
 # Logging function
 log() {
@@ -113,12 +119,22 @@ if [ ! -d "$BACKUP_DIR/.git" ]; then
     log "Initializing new Git repository..."
     cd "$BACKUP_DIR"
     git init
+    git config user.name "Router Auto Backup"
+    git config user.email "router@local"
     git remote add origin "$GIT_REMOTE"
     git checkout -b "$BRANCH" 2>/dev/null || git checkout -b master 2>/dev/null
 else
     cd "$BACKUP_DIR"
+    # Ensure consistent author info
+    git config user.name "Router Auto Backup"
+    git config user.email "router@local"
+    # Force update to the latest from remote to avoid conflicts
+    log "Fetching latest changes from remote..."
+    git fetch origin
+    log "Resetting to match remote branch..."
+    git reset --hard origin/"$BRANCH"
     # Attempt to pull latest changes to avoid conflicts
-    git pull origin "$BRANCH" >/dev/null 2>&1 || true
+    git pull origin "$BRANCH" 
 fi
 
 # 4. Extract Configurations for Change Detection
