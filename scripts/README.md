@@ -115,17 +115,26 @@ cat /etc/rc.local
 ## 常见问题
 
 **Q: 备份没有推送到 GitHub？**
-- 检查 SSH 连接：`ssh -T git@github.com`
-- 查看日志：`tail -n 50 /root/smart_backup.log`
-- 确认配置文件确实有变更
+
+检查 SSH 连接：
+```bash
+ssh -T git@github.com
+```
+
+查看日志：
+```bash
+tail -n 50 /root/smart_backup.log
+```
+
+确认配置文件确实有变更
 
 **Q: 开机后没有自动执行？**
-- 确认 `/etc/rc.local` 包含 `/root/smart_backup.sh &`
-- 脚本会等待系统启动 10 分钟后才执行
+
+确认 `/etc/rc.local` 包含 `/root/smart_backup.sh &`，脚本会等待系统启动 10 分钟后才执行。
 
 **Q: 为什么有时候不备份？**
-- 这是正常的！脚本只在配置变更时才备份
-- 检查是否真的修改了 `/etc/config` 下的文件
+
+这是正常的！脚本只在配置变更时才备份。检查是否真的修改了 `/etc/config` 下的文件。
 
 ---
 
@@ -233,17 +242,26 @@ crontab -l
 ## FAQ
 
 **Q: Backup not pushed to GitHub?**
-- Check SSH: `ssh -T git@github.com`
-- Check log: `tail -n 50 /root/smart_backup.log`
-- Verify config files actually changed
+
+Check SSH connection:
+```bash
+ssh -T git@github.com
+```
+
+Check log:
+```bash
+tail -n 50 /root/smart_backup.log
+```
+
+Verify config files actually changed.
 
 **Q: No auto-run after boot?**
-- Confirm `/etc/rc.local` contains `/root/smart_backup.sh &`
-- Script waits 10 minutes after boot for system stability
+
+Confirm `/etc/rc.local` contains `/root/smart_backup.sh &`. Script waits 10 minutes after boot for system stability.
 
 **Q: Why sometimes no backup?**
-- This is normal! Script only backs up when configs change
-- Check if you actually modified files in `/etc/config`
+
+This is normal! Script only backs up when configs change. Check if you actually modified files in `/etc/config`.
 
 ---
 
@@ -297,8 +315,9 @@ Auto-extracted plain text config files, corresponding to `/etc/config/` on route
 View commit history of `configs/` folder on GitHub to see detailed diffs of each config change.
 
 **示例 Commit Message / Example**:
-```
+```bash
 Update: dhcp, firewall, network, openclash (2025-12-13)
 ```
 
 点击提交即可查看具体修改了哪些配置项。
+Click commit to view specific config changes.
