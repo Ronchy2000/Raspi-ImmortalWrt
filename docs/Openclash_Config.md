@@ -21,13 +21,28 @@
 
 与视频不同的是，视频里的 `config.yaml` 在实际使用中会出现两个问题：一是 `LinkedIn`无法正常访问，二是像 IEEE 这类`学术网站`无法正确识别学术网络的 IP，导致需要频繁切换网络才能下载文献。本文提供的配置方案针对规则与 DNS 分流做了调整，解决了上述问题，并给出可复现的示例与验证步骤。
 
-请使用[config_linkedin.yaml](../config.yaml)作为配置文件。
+配置文件选择（均在仓库根目录）：
+- `config.yaml`：基础版，按需自行扩展
+- `config_linkedin.yaml`：LinkedIn 修复版（DNS/规则排除冲突）
+- `config_linkedin_auto.yaml`：智能切换版（在 LinkedIn 修复版基础上，将常用策略组改为自动故障切换）
 
-本配置说明：文献库，steam下载走直连，linkedin利用海外DNS访问，防止跳转回国，更多功能请提PR！
+推荐使用 [config_linkedin_auto.yaml](../config_linkedin_auto.yaml) 作为配置文件。
+
+本配置说明：文献库、Steam 下载走直连；LinkedIn 使用海外 DNS，防止跳转回国（DNS 配置保持不动即可）。
+使用前请在 `proxy-providers` 的 `url` 填写机场订阅链接。
 
 <div align="center">
   <img src="../figures/Direct_rules.png" width="80%" />
 </div>
+
+自定义直连规则（含学术站点）：
+- 规则从上到下匹配，越靠前优先
+- 在 `rules` 的 `# Custom` 或 `# 文献库` 区域添加直连规则，例如：
+  - `DOMAIN-SUFFIX,example.edu,DIRECT`
+  - `DOMAIN,sub.example.edu,DIRECT`
+  - `IP-CIDR,1.2.3.0/24,DIRECT,no-resolve`
+- 如需走代理，把 `DIRECT` 改为 `🚀 默认代理` 或对应服务分组
+- 添加后在 OpenClash 里重载配置
 
 
 2. 高级使用方法
@@ -77,13 +92,28 @@ Link: https://www.youtube.com/watch?v=1U9xkpexHOE
 
 Unlike in the video, the `config.yaml` in the video has two issues in actual use: first, `LinkedIn` cannot be accessed normally, and second, `academic websites` like IEEE cannot correctly identify academic network IPs, requiring frequent network switching to download papers. The configuration provided in this article adjusts rules and DNS splitting to solve these issues and provides reproducible examples and verification steps.
 
-Please use [config_linkedin.yaml](config.yaml) as the configuration file.
+Config file options (all in repo root):
+- `config.yaml`: base version for customization
+- `config_linkedin.yaml`: LinkedIn fix (DNS/rule exclusions)
+- `config_linkedin_auto.yaml`: smart switch (auto failover groups based on the LinkedIn fix)
 
-Configuration notes: Academic literature repositories and Steam downloads use direct connection, LinkedIn uses overseas DNS to prevent redirection to domestic sites. For more features, please submit a PR!
+Recommended: use [config_linkedin_auto.yaml](../config_linkedin_auto.yaml).
+
+Notes: Academic repositories and Steam downloads go direct; LinkedIn uses overseas DNS to prevent CN redirects (keep DNS unchanged).
+Before use, set your subscription URL in `proxy-providers`.
 
 <div align="center">
-  <img src="figures/Direct_rules.png" width="80%" />
+  <img src="../figures/Direct_rules.png" width="80%" />
 </div>
+
+Custom direct rules (including academic sites):
+- Rules match top-to-bottom, earlier rules win
+- Add direct rules in `rules` under `# Custom` or `# 文献库`, e.g.:
+  - `DOMAIN-SUFFIX,example.edu,DIRECT`
+  - `DOMAIN,sub.example.edu,DIRECT`
+  - `IP-CIDR,1.2.3.0/24,DIRECT,no-resolve`
+- To proxy instead, replace `DIRECT` with `🚀 默认代理` or the target group
+- Reload OpenClash after changes
 
 **2. Advanced Usage**
 
