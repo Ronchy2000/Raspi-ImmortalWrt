@@ -114,7 +114,7 @@ ARCHIVE_PATH="$TMP_DIR/$ARCHIVE_NAME"
 log "Generating system backup archive..."
 sysupgrade -b "$ARCHIVE_PATH" >/dev/null 2>&1
 
-# 3. Initialize/Update Git Repository
+# 3. Initialize Git Repository (if needed)
 if [ ! -d "$BACKUP_DIR/.git" ]; then
     log "Initializing new Git repository..."
     cd "$BACKUP_DIR"
@@ -128,13 +128,7 @@ else
     # Ensure consistent author info
     git config user.name "Router Auto Backup"
     git config user.email "router@local"
-    # Force update to the latest from remote to avoid conflicts
-    log "Fetching latest changes from remote..."
-    git fetch origin
-    log "Resetting to match remote branch..."
-    git reset --hard origin/"$BRANCH"
-    # Attempt to pull latest changes to avoid conflicts
-    git pull origin "$BRANCH" 
+    # NOTE: Do NOT reset/pull here - we need to detect local changes first
 fi
 
 # 4. Extract Configurations for Change Detection
@@ -161,13 +155,23 @@ rm -rf "$BACKUP_DIR/configs"
 mkdir -p "$BACKUP_DIR/configs"
 cp -r "$CONFIG_SRC/"* "$BACKUP_DIR/configs/"
 
+# 4.1 Also backup OpenClash config files (usually in /etc/openclash/)
+# This is needed because OpenClash config.yaml is not part of /etc/config
+if [ -d "/etc/openclash" ]; then
+    log "Backing up OpenClash configurations..."
+    mkdir -p "$BACKUP_DIR/openclash"
+    cp -r /etc/openclash/*.yaml "$BACKUP_DIR/openclash/" 2>/dev/null || true
+    cp -r /etc/openclash/config/*.yaml "$BACKUP_DIR/openclash/" 2>/dev/null || true
+fi
+
 # 5. Detect Changes
 cd "$BACKUP_DIR"
 git add configs/
+git add openclash/ 2>/dev/null || true
 
 # Check if there are any changes in the 'configs' directory
-if git diff --cached --quiet -- configs/; then
-    log "No configuration changes detected in /etc/config."
+if git diff --cached --quiet -- configs/ openclash/; then
+    log "No configuration changes detected in /etc/config or /etc/openclash."
     log "Skipping backup push."
     exit 0
 else
@@ -176,7 +180,7 @@ fi
 
 # 6. Generate Smart Commit Message
 # Get list of changed files (e.g., "network, wireless, firewall")
-CHANGED_MODULES=$(git diff --cached --name-only -- configs/ | sed 's|configs/||' | tr '\n' ', ' | sed 's/, $//')
+CHANGED_MODULES=$(git diff --cached --name-only -- configs/ openclash/ | sed 's|configs/||; s|openclash/||' | tr '\n' ', ' | sed 's/, $//')
 COMMIT_MSG="Update: ${CHANGED_MODULES} ($(date +%Y-%m-%d))"
 log "Generated Commit Message: $COMMIT_MSG"
 
@@ -211,7 +215,23 @@ git commit -m "$COMMIT_MSG"
 log "Pushing to GitHub..."
 if git push origin "$BRANCH"; then
     log "Backup successfully pushed."
+    # Sync with remote after successful push
+    log "Syncing with remote branch..."
+    git fetch origin
+    git reset --hard origin/"$BRANCH"
 else
-    log "Error: Push failed."
-    exit 1
+    log "Error: Push failed. Trying to fetch and merge..."
+    # If push fails, fetch and try to merge
+    git fetch origin
+    git merge origin/"$BRANCH" -m "Merge remote changes"
+    if git push origin "$BRANCH"; then
+        log "Backup successfully pushed after merge."
+        # Sync with remote after successful push
+        git reset --hard origin/"$BRANCH"
+    else
+        log "Error: Push still failed."
+        exit 1
+    fi
 fi
+
+log "========== Backup Complete =========="

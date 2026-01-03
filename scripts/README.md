@@ -6,15 +6,16 @@
 ## 概览
 - **脚本名称**: `/root/smart_backup.sh`
 - **运行时间**: 每天 **15:00** 自动运行 + 开机自动检查
-- **核心逻辑**: **按需备份**。智能识别 `/etc/config` 变更，只有配置发生变化时才执行备份和推送
-- **双重存档**: 同时保存 `sysupgrade` 恢复包 (`.tar.gz`) 和明文配置 (`configs/`)，便于追踪变更历史
+- **核心逻辑**: **按需备份**。智能识别 `/etc/config` 和 `/etc/openclash` 变更，只有配置发生变化时才执行备份和推送
+- **双重存档**: 同时保存 `sysupgrade` 恢复包 (`.tar.gz`) 和明文配置 (`configs/` + `openclash/`)，便于追踪变更历史
 - **保留策略**: 本地保留最近 **3份**，GitHub 仓库保留最近 **30份**
 - **稳定性检查**: 内置开机时长检测 (>10分钟)、NTP 时间同步检查和网络连通性检查
 
 ## 为什么要这样做
 - **避免冗余**: 只有配置变了才备份，节省存储空间和 Git 提交历史
 - **版本管理**: 自动提取配置文件到 Git，可以清晰地看到每次修改了哪些配置项 (Diff)
-- **语义化提交**: 自动生成 Commit Message (如 `Update: dhcp, network, wireless`)
+- **OpenClash支持**: 同时备份 `/etc/config/openclash` 和 `/etc/openclash/*.yaml` 配置文件
+- **语义化提交**: 自动生成 Commit Message (如 `Update: dhcp, network, wireless, config.yaml`)
 - **开机补跑**: 配合 `rc.local` 开机自启，系统稳定后自动检查并执行备份
 
 ## 部署步骤
@@ -134,7 +135,11 @@ tail -n 50 /root/smart_backup.log
 
 **Q: 为什么有时候不备份？**
 
-这是正常的！脚本只在配置变更时才备份。检查是否真的修改了 `/etc/config` 下的文件。
+这是正常的！脚本只在配置变更时才备份。脚本会监控：
+- `/etc/config/` 下的所有系统配置文件
+- `/etc/openclash/` 下的 OpenClash 配置文件（如 config.yaml）
+
+修改任何一处都会触发备份。
 
 ---
 
