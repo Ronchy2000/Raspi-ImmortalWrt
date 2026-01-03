@@ -24,9 +24,47 @@
 配置文件选择（均在仓库根目录）：
 - `config.yaml`：基础版，按需自行扩展
 - `config_linkedin.yaml`：LinkedIn 修复版（DNS/规则排除冲突）
-- `config_linkedin_auto.yaml`：智能切换版（在 LinkedIn 修复版基础上，将常用策略组改为自动故障切换）
+- `config_linkedin_auto.yaml`：**智能切换版（推荐）** - 在 LinkedIn 修复版基础上，使用自动故障切换策略
 
 推荐使用 [config_linkedin_auto.yaml](../config_linkedin_auto.yaml) 作为配置文件。
+
+### ⚡ 自动节点切换配置说明
+
+**为什么需要自动切换？**
+- 机场节点有时会失效或变慢
+- 手动切换节点体验差，影响使用
+- 智能配置可以实现无缝上网体验
+
+**config_linkedin_auto.yaml 的优势**：
+
+1. **自动测速选择（url-test）**
+   - 每60秒自动测试所有节点延迟
+   - 自动选择延迟最低的可用节点
+   - 容差50ms：延迟波动超过50ms立即切换
+
+2. **故障转移（fallback）**
+   - 主节点失败自动切换备用节点
+   - 各应用分组独立配置优先级
+   - 180秒检测间隔，容差20ms
+
+3. **地区自动选择组**
+   - ♻️ 香港自动、日本自动、狮城自动、美国自动
+   - 各地区内自动选择最快节点
+   - 节点失效自动剔除
+
+**关键参数**：
+```yaml
+type: url-test         # 自动测速选择最快节点
+type: fallback         # 故障转移（主节点挂了切备用）
+interval: 60           # 每60秒测试一次（默认180s太慢）
+tolerance: 50          # 延迟差50ms就切换（默认100ms太大）
+url: https://cp.cloudflare.com/generate_204  # 测试地址
+```
+
+**使用效果**：
+- ✅ 节点失效1分钟内自动切换
+- ✅ 延迟波动大于50ms自动优化
+- ✅ 无需手动干预，全自动无缝体验
 
 本配置说明：文献库、Steam 下载走直连；LinkedIn 使用海外 DNS，防止跳转回国（DNS 配置保持不动即可）。
 使用前请在 `proxy-providers` 的 `url` 填写机场订阅链接。
