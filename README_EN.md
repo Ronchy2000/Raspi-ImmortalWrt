@@ -78,7 +78,7 @@ If you have backup and restore needs:
   - Expand Overlay Space: [docs/ExtendOverlaySize.md](docs/ExtendOverlaySize.md)
 
 5. OpenClash Network Access Settings
-  - Network Access Plugin Configuration: [Openclash_Config](Openclash_Config)
+  - Network Access Plugin Configuration: [docs/Openclash_Config.md](docs/Openclash_Config.md)
 
 ---
 

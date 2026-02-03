@@ -83,7 +83,7 @@
   - 扩容Overlay空间：[docs/ExtendOverlaySize.md](docs/ExtendOverlaySize.md)
 
 6. Openclash科学上网设置
-  - 科学上网插件配置：[Openclash_Config](Openclash_Config)
+  - 科学上网插件配置：[docs/Openclash_Config.md](docs/Openclash_Config.md)
 
 ---
 
