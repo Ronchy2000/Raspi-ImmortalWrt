@@ -4,9 +4,11 @@
 
 # <img src="figures/raspberry-pi-logo.png" width="32" height="32" style="vertical-align: middle;" /> 树莓派 OpenWrt 软路由配置指南
 
-[![ImmortalWrt](https://img.shields.io/badge/ImmortalWrt-24.10.3-blue.svg)](https://immortalwrt.org/) [![Raspberry Pi](https://img.shields.io/badge/Device-Raspberry%20Pi%204-red.svg)](https://www.raspberrypi.org/) [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) ![Status](https://img.shields.io/badge/状态-维护模式-green.svg)
+[![ImmortalWrt](https://img.shields.io/badge/ImmortalWrt-24.10.3-blue.svg)](https://immortalwrt.org/) [![Raspberry Pi](https://img.shields.io/badge/Device-Raspberry%20Pi%204-red.svg)](https://www.raspberrypi.org/) [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) ![Status](https://img.shields.io/badge/状态-维护模式-green.svg) [![在线文档](https://img.shields.io/badge/在线文档-Raspi%20ImmortalWrt%20Docs-0f766e?logo=vercel&logoColor=white)](https://raspi.ronchy2000.top/)
 
 **从零开始，打造属于你的全屋智能网关**
+
+在线文档入口：[Raspi ImmortalWrt Docs](https://raspi.ronchy2000.top/)
 
 <img src="figures/树莓派照片.png" width="40%" style="border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />
 

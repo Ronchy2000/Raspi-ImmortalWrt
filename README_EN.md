@@ -1,12 +1,14 @@
-[🇨🇳 中文文档](./README.md) | [🇺🇸 English](README.md)
+[🇨🇳 中文文档](./README.md) | [🇺🇸 English](./README_EN.md)
 
 <div align="center">
 
 # <img src="figures/raspberry-pi-logo.png" width="32" height="32" style="vertical-align: middle;" /> Raspberry Pi OpenWrt Software Router Configuration Guide
 
-[![ImmortalWrt](https://img.shields.io/badge/ImmortalWrt-24.10.0-blue.svg)](https://immortalwrt.org/) [![Raspberry Pi](https://img.shields.io/badge/Device-Raspberry%20Pi%204-red.svg)](https://www.raspberrypi.org/) [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Status](https://img.shields.io/badge/Status-Maintenance-green.svg)]()
+[![ImmortalWrt](https://img.shields.io/badge/ImmortalWrt-24.10.0-blue.svg)](https://immortalwrt.org/) [![Raspberry Pi](https://img.shields.io/badge/Device-Raspberry%20Pi%204-red.svg)](https://www.raspberrypi.org/) [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Status](https://img.shields.io/badge/Status-Maintenance-green.svg)]() [![Online Docs](https://img.shields.io/badge/Online%20Docs-Raspi%20ImmortalWrt%20Docs-0f766e?logo=vercel&logoColor=white)](https://raspi.ronchy2000.top/)
 
 **Transform Your Raspberry Pi into a Smart Gateway**
+
+Docs Portal: [Raspi ImmortalWrt Docs](https://raspi.ronchy2000.top/)
 
 <img src="figures/树莓派照片.png" width="40%" style="border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />
 
