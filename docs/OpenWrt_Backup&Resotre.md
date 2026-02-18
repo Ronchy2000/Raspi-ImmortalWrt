@@ -46,8 +46,19 @@
 - luci-app-openclash
 - luci-i18n-passwall-zh-cn
 - luci-i18n-homeproxy-zh-cn
+- luci-i18n-quickstart-zh-cn
 
 插件位置在：侧边栏的“服务”标签页。
+
+如果你偏好命令行，可直接执行：
+
+```bash
+# 安装 iStore 商店（ARM64 & x86-64 通用）
+wget -qO imm.sh https://cafe.cpolar.cn/wkdaily/zero3/raw/branch/main/zero3/imm.sh && chmod +x imm.sh && ./imm.sh
+
+# 安装 quickstart 网络向导和首页（ARM64 & x86-64 通用）
+is-opkg install luci-i18n-quickstart-zh-cn
+```
 
 重要：如果您不执行<strong>以上操作</strong>，直接从`备份与恢复`设置`上传备份`，会报错！且难以解决！
 
@@ -71,7 +82,16 @@ opkg update
 opkg install openssh-sftp-server
 ```
 2. 安装`luci-theme-argon`后，在系统--备份与升级--上传备份。
-3. 安装插件：luci-app-openclash
+3. 安装插件（恢复前建议至少安装以下内容）：
+```bash
+is-opkg install luci-app-openclash
+is-opkg install luci-i18n-passwall-zh-cn
+is-opkg install luci-i18n-homeproxy-zh-cn
+is-opkg install luci-i18n-quickstart-zh-cn
+
+# 安装 iStore 商店（ARM64 & x86-64 通用）
+wget -qO imm.sh https://cafe.cpolar.cn/wkdaily/zero3/raw/branch/main/zero3/imm.sh && chmod +x imm.sh && ./imm.sh
+```
 4. 还原文件openclash配置(经实验，这个可以不用，openclash相关备份已经包含在系统备份中)
 
 成功！
@@ -195,8 +215,19 @@ Plugin Installation:
 - luci-app-openclash
 - luci-i18n-passwall-zh-cn
 - luci-i18n-homeproxy-zh-cn
+- luci-i18n-quickstart-zh-cn
 
 Plugin location: In the "Services" tab on the sidebar.
+
+If you prefer command line, run:
+
+```bash
+# Install iStore (ARM64 & x86-64 universal)
+wget -qO imm.sh https://cafe.cpolar.cn/wkdaily/zero3/raw/branch/main/zero3/imm.sh && chmod +x imm.sh && ./imm.sh
+
+# Install quickstart wizard and homepage (ARM64 & x86-64 universal)
+is-opkg install luci-i18n-quickstart-zh-cn
+```
 
 Important: If you do not perform the <strong>above operations</strong> and directly upload the backup from `Backup & Restore` settings, it will report errors! And it's difficult to resolve!
 
@@ -217,7 +248,16 @@ opkg update
 opkg install openssh-sftp-server
 ```
 2. After installing `luci-theme-argon`, go to System--Backup & Upgrade--Upload Backup.
-3. Install plugin: luci-app-openclash
+3. Install plugins (recommended before restore):
+```bash
+is-opkg install luci-app-openclash
+is-opkg install luci-i18n-passwall-zh-cn
+is-opkg install luci-i18n-homeproxy-zh-cn
+is-opkg install luci-i18n-quickstart-zh-cn
+
+# Install iStore (ARM64 & x86-64 universal)
+wget -qO imm.sh https://cafe.cpolar.cn/wkdaily/zero3/raw/branch/main/zero3/imm.sh && chmod +x imm.sh && ./imm.sh
+```
 4. Restore OpenClash configuration files (after testing, this is not necessary, OpenClash-related backup is already included in the system backup)
 
 Success!
