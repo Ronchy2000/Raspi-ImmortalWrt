@@ -4,7 +4,7 @@
 
 # <img src="figures/raspberry-pi-logo.png" width="32" height="32" style="vertical-align: middle;" /> 树莓派 OpenWrt 软路由配置指南
 
-[![ImmortalWrt](https://img.shields.io/badge/ImmortalWrt-24.10.3-blue.svg)](https://immortalwrt.org/) [![Raspberry Pi](https://img.shields.io/badge/Device-Raspberry%20Pi%204-red.svg)](https://www.raspberrypi.org/) [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Status](https://img.shields.io/badge/状态-维护模式-green.svg)]()
+[![ImmortalWrt](https://img.shields.io/badge/ImmortalWrt-24.10.3-blue.svg)](https://immortalwrt.org/) [![Raspberry Pi](https://img.shields.io/badge/Device-Raspberry%20Pi%204-red.svg)](https://www.raspberrypi.org/) [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) ![Status](https://img.shields.io/badge/状态-维护模式-green.svg)
 
 **从零开始，打造属于你的全屋智能网关**
 
@@ -61,16 +61,17 @@
 
 ---
 
-# 常用设置及文档：
+# 常用设置及文档
 1. 烧录工具及步骤：
   - 烧录软件及使用：[docs/Write_Image.md](docs/Write_Image.md)
 
 2. 拨号设置
+  - 上级路由 LAN 接入（新手推荐先看）：[docs/Lan_Connectioin.md](docs/Lan_Connectioin.md)
   - 家庭或校园网拨号：[docs/PPPoE_Connection.md](docs/PPPoE_Connection.md)
 
 3. OpenWrt备份与恢复：
 系统已升级为**智能备份**策略，仅在配置变更时触发备份，并自动记录变更详情。
-  - 智能备份原理与配置：[docs/System_Maintenance.md#智能备份-smart-backup](docs/System_Maintenance.md#智能备份-smart-backup)
+  - 智能备份原理与配置：[docs/System_Maintenance.md#自动化监控](docs/System_Maintenance.md#自动化监控)
   - 手动备份与恢复：[docs/OpenWrt_Backup&Resotre.md](docs/OpenWrt_Backup&Resotre.md)
   - 旧版自动备份参考：[docs/OpenWrt_AutoBackup.md](docs/OpenWrt_AutoBackup.md)
 
@@ -140,7 +141,7 @@ cat /etc/openwrt_release; uname -m
 
   - i. 连接树莓派wifi（默认名称：`ImmortalWrt` ）
   - ii.浏览器输入`192.168.1.1`，进入后台，默认密码为空，直接点击确定。
-  - ii.（与上方二选一） 使用本地ssh工具，address: `192.168.1.1`, 端口：`22`, Username: `root`, Password: `默认为空`/`编译固件时候的密码，请见`[固件选择](#firmware_selection_cn)
+  - iii.（与上方二选一） 使用本地ssh工具，address: `192.168.1.1`, 端口：`22`, Username: `root`, Password: `默认为空`/`编译固件时候的密码，请见`[固件选择](#firmware_selection_cn)
 
 
 2. 有线连接：
@@ -153,7 +154,7 @@ cat /etc/openwrt_release; uname -m
   </div>
 
   - iii. 访问 `192.168.1.1` 进入 OpenWrt 的web后台;
-  - iiii. 默认账户：root; 默认密码：(空)或烧录时设置的密码。
+  - iv. 默认账户：root; 默认密码：(空)或烧录时设置的密码。
 > `方法2`适用于复杂的校园网环境（尤其是同一个实验室中出现不同局域网的情况）
 
 
@@ -161,16 +162,21 @@ cat /etc/openwrt_release; uname -m
 
 
 ## 基础设置
-> 连接后，第一步先修改密码。第二部关闭IPv6设置。
+> 连接后，第一步先修改密码。第二步关闭IPv6设置。
 
 - 关闭 IPv6 相关设置（参考视频 24:42）https://www.youtube.com/watch?v=JfSJmPFiL_s&t=344s
 
 # 网络配置
 > 接下来需要配置网络，如果您将路由器lan口与树莓派的网口连接，那么不用做任何改动，连接到树莓派的wifi即可成功上网。
+>
+> 先选场景再操作（避免踩坑）：
+> 1) 上级路由 LAN 接入（树莓派网口接上级路由 LAN 口）：看 [LAN 连接文档](docs/Lan_Connectioin.md)
+> 2) 主路由/校园网拨号：看 [PPPoE 文档](docs/PPPoE_Connection.md)
 
-<a id = "simplest_method"></a>
-### 最简单用法
+<a id="simplest_method"></a>
+## 最简单用法
 将树莓派的单个网口连接到光猫或路由器的LAN口，此时任何终端设备连接上树莓派的wifi后，都可上网。
+详细图文步骤见：[`docs/Lan_Connectioin.md`](docs/Lan_Connectioin.md)
 
 > 但如果你是在校园网环境下，或者是想让树莓派当主路由器，即有拨号需求，请看以下方法。
 
@@ -207,8 +213,19 @@ cat /etc/openwrt_release; uname -m
 - luci-app-openclash
 - luci-i18n-passwall-zh-cn
 - luci-i18n-homeproxy-zh-cn
+- luci-i18n-quickstart-zh-cn
+- iStore 商店（通过 imm.sh 安装）
 
 插件位置在：侧边栏的“服务”标签页。
+
+命令行安装（ARM64 & x86-64 通用）：
+```bash
+# 安装 iStore 商店
+wget -qO imm.sh https://cafe.cpolar.cn/wkdaily/zero3/raw/branch/main/zero3/imm.sh && chmod +x imm.sh && ./imm.sh
+
+# 安装 quickstart 网络向导和首页
+is-opkg install luci-i18n-quickstart-zh-cn
+```
 
 > 插件安装好了，接下来只要完成最后一步，配置代理工具，之后您就可以在全屋的任意终端设备上实现`科 学 上 网`了！
 ## 科学上网配置

@@ -66,6 +66,7 @@ This project provides a **complete Raspberry Pi software router configuration so
   - Flashing Software and Usage: [docs/Write_Image.md](docs/Write_Image.md)
 
 2. Dial-up Settings
+  - LAN Uplink to Upstream Router (beginner-friendly): [docs/Lan_Connectioin.md](docs/Lan_Connectioin.md)
   - Home or Campus Network Dial-up: [docs/PPPoE_Connection.md](docs/PPPoE_Connection.md)
 
 3. OpenWrt Backup & Restore:
@@ -148,10 +149,15 @@ Specific firmware packages can be found in the release section.
 
 # Network Configuration
 > Next, you need to configure the network. If you connect the router's LAN port to the Raspberry Pi's network port, you don't need to make any changes - simply connect to the Raspberry Pi's WiFi to access the internet.
+>
+> Choose your scenario first (to avoid common mistakes):
+> 1) Upstream router LAN uplink (Pi Ethernet -> upstream router LAN): read [LAN Connection](docs/Lan_Connectioin.md)
+> 2) Main router / campus PPPoE: read [PPPoE guide](docs/PPPoE_Connection.md)
 
 <a id="simplest_method_en"></a>
 ### Simplest Usage
 Connect the Raspberry Pi's single network port to the LAN port of your optical modem or router. Any terminal device connected to the Raspberry Pi's WiFi can then access the internet.
+Step-by-step screenshots: [`docs/Lan_Connectioin.md`](docs/Lan_Connectioin.md)
 
 > However, if you're in a campus network environment or want the Raspberry Pi to act as the main router (i.e., you have dial-up requirements), please see the following methods.
 
@@ -189,8 +195,19 @@ Plugin Installation:
 - luci-app-openclash
 - luci-i18n-passwall-zh-cn
 - luci-i18n-homeproxy-zh-cn
+- luci-i18n-quickstart-zh-cn
+- iStore App Store (installed via imm.sh)
 
 Plugin location: In the "Services" tab on the sidebar.
+
+Command-line installation (ARM64 & x86-64 universal):
+```bash
+# Install iStore App Store
+wget -qO imm.sh https://cafe.cpolar.cn/wkdaily/zero3/raw/branch/main/zero3/imm.sh && chmod +x imm.sh && ./imm.sh
+
+# Install quickstart wizard and homepage
+is-opkg install luci-i18n-quickstart-zh-cn
+```
 
 > Once plugins are installed, complete the final step of configuring the proxy tool, and you'll be able to achieve `network access` on any terminal device in your home!
 
