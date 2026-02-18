@@ -1,0 +1,4 @@
+.next/
+out/
+.npm-cache/
+public/
