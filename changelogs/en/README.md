@@ -5,6 +5,7 @@ Scope includes: `docs/`, `scripts/`, and `frontend/`.
 
 ## Entries
 
+- [2026-02-20](./2026-02-20.md) - SSH-22 general fix docs/config and OpenWrt_Backup route character fix (resolved EN/ZH switch 404)
 - [2026-02-18](./2026-02-18.md) - Frontend locale auto-detection, richer homepage content, and changelog EN routing fix
 - [2026-01-03](./2026-01-03.md) - Fixed smart backup change detection and improved OpenClash config tracking.
 - [2025-12-13](./2025-12-13.md) - Reworked backup documentation and restore guidance.
