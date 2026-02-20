@@ -82,6 +82,7 @@ If you have backup and restore needs:
 
 5. OpenClash Network Access Settings
   - Network Access Plugin Configuration: [docs/Openclash_Config.md](docs/Openclash_Config.md)
+  - GitHub SSH Port 22 Troubleshooting: [docs/en/GitHub_SSH_22_Port_Blocking.md](docs/en/GitHub_SSH_22_Port_Blocking.md)
 
 ---
 

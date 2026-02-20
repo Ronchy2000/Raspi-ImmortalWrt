@@ -25,8 +25,10 @@
 - `config.yaml`：基础版，按需自行扩展
 - `config_linkedin.yaml`：LinkedIn 修复版（DNS/规则排除冲突）
 - `config_linkedin_auto.yaml`：**智能切换版（推荐）** - 在 LinkedIn 修复版基础上，使用自动故障切换策略
+- `config_linkedin_auto_ssh22_redir.yaml`：GitHub SSH 22 端口问题修复版（`redir-host`/Redir + `DST-PORT,22,DIRECT`）
 
 推荐使用 [config_linkedin_auto.yaml](../config_linkedin_auto.yaml) 作为配置文件。
+若遇到 GitHub SSH 22 端口握手被断开，可切换到 `redir-host`（或 Redir）并改用 [config_linkedin_auto_ssh22_redir.yaml](../config_linkedin_auto_ssh22_redir.yaml)，再参考 [GitHub SSH 22 端口排障记录](./GitHub_SSH_22_Port_Blocking.md)。
 
 ### ⚡ 自动节点切换配置说明
 
@@ -134,8 +136,10 @@ Config file options (all in repo root):
 - `config.yaml`: base version for customization
 - `config_linkedin.yaml`: LinkedIn fix (DNS/rule exclusions)
 - `config_linkedin_auto.yaml`: smart switch (auto failover groups based on the LinkedIn fix)
+- `config_linkedin_auto_ssh22_redir.yaml`: SSH-22 fix variant (`redir-host`/Redir + `DST-PORT,22,DIRECT`)
 
 Recommended: use [config_linkedin_auto.yaml](../config_linkedin_auto.yaml).
+If GitHub SSH on port 22 is closed during handshake, switch to `redir-host` (or Redir), use [config_linkedin_auto_ssh22_redir.yaml](../config_linkedin_auto_ssh22_redir.yaml), and follow [GitHub SSH 22 troubleshooting notes](./en/GitHub_SSH_22_Port_Blocking.md).
 
 Notes: Academic repositories and Steam downloads go direct; LinkedIn uses overseas DNS to prevent CN redirects (keep DNS unchanged).
 Before use, set your subscription URL in `proxy-providers`.
