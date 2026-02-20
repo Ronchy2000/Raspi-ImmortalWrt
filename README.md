@@ -87,6 +87,7 @@
 
 6. Openclash科学上网设置
   - 科学上网插件配置：[docs/Openclash_Config.md](docs/Openclash_Config.md)
+  - GitHub SSH 22 端口故障排查：[docs/GitHub_SSH_22_Port_Blocking.md](docs/GitHub_SSH_22_Port_Blocking.md)
 
 ---
 
