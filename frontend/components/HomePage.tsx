@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import LocalePreferenceLink from "@/components/LocalePreferenceLink";
 import { DocLocale, DocMeta, docHrefFromKey, getAllDocs, homeHref } from "@/lib/docs";
 
 function isCatalogVisible(docKey: string): boolean {
@@ -264,9 +265,9 @@ export default async function HomePage({ locale }: { locale: DocLocale }) {
             <Link href={docHrefFromKey(readmeKey, locale)} className="primary-btn">
               {text.primary}
             </Link>
-            <Link href={homeHref(otherLocale)} className="secondary-btn">
+            <LocalePreferenceLink href={homeHref(otherLocale)} locale={otherLocale} className="secondary-btn">
               {text.secondary}
-            </Link>
+            </LocalePreferenceLink>
           </div>
 
           <ul className="hero-points">
