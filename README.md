@@ -74,7 +74,7 @@
 3. OpenWrt备份与恢复：
 系统已升级为**智能备份**策略，仅在配置变更时触发备份，并自动记录变更详情。
   - 智能备份原理与配置：[docs/System_Maintenance.md#自动化监控](docs/System_Maintenance.md#自动化监控)
-  - 手动备份与恢复：[docs/OpenWrt_Backup&Resotre.md](docs/OpenWrt_Backup&Resotre.md)
+  - 手动备份与恢复：[docs/OpenWrt_Backup_Resotre.md](docs/OpenWrt_Backup_Resotre.md)
   - 旧版自动备份参考：[docs/OpenWrt_AutoBackup.md](docs/OpenWrt_AutoBackup.md)
 
 4. **系统监控与维护** 🔥

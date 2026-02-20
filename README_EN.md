@@ -73,7 +73,7 @@ This project provides a **complete Raspberry Pi software router configuration so
 
 3. OpenWrt Backup & Restore:
 If you have backup and restore needs:
-  - Manual Backup & Restore: [docs/OpenWrt_Backup&Resotre.md](docs/OpenWrt_Backup&Resotre.md)
+  - Manual Backup & Restore: [docs/OpenWrt_Backup_Resotre.md](docs/OpenWrt_Backup_Resotre.md)
 
   - Scheduled Automatic Backup Settings: [docs/OpenWrt_AutoBackup.md](docs/OpenWrt_AutoBackup.md)
 
@@ -264,7 +264,7 @@ I hope this configuration guide helps you! If you have any questions, feel free 
 # Other
 ## OpenWrt Backup & Restore:
 If you have backup and restore needs:
-- Manual Backup & Restore: [docs/OpenWrt_Backup&Resotre.md](docs/OpenWrt_Backup&Resotre.md)
+- Manual Backup & Restore: [docs/OpenWrt_Backup_Resotre.md](docs/OpenWrt_Backup_Resotre.md)
 
 - Scheduled Automatic Backup Settings: [docs/OpenWrt_AutoBackup.md](docs/OpenWrt_AutoBackup.md)
 

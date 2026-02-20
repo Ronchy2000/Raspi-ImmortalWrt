@@ -28,7 +28,7 @@ function groupName(docKey: string): string {
     return "network";
   }
   if (
-    docKey === "docs/OpenWrt_Backup&Resotre" ||
+    docKey === "docs/OpenWrt_Backup_Resotre" ||
     docKey === "docs/OpenWrt_AutoBackup" ||
     docKey === "docs/System_Maintenance" ||
     docKey === "docs/ExtendOverlaySize"
@@ -227,7 +227,7 @@ export default async function HomePage({ locale }: { locale: DocLocale }) {
   const readmeKey = "README";
   const lanKey = "docs/Lan_Connectioin";
   const openclashKey = "docs/Openclash_Config";
-  const backupKey = "docs/OpenWrt_Backup&Resotre";
+  const backupKey = "docs/OpenWrt_Backup_Resotre";
   const quickLinks = [lanKey, openclashKey, backupKey]
     .map((key) => docs.find((doc) => doc.key === key))
     .filter((doc): doc is NonNullable<typeof doc> => Boolean(doc));

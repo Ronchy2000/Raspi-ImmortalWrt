@@ -519,7 +519,7 @@ Raspi-ImmortalWrt/
 ├── docs/
 │   ├── System_Maintenance.md         # 系统维护完整文档 (NEW)
 │   ├── OpenWrt_AutoBackup.md         # 自动备份配置
-│   ├── OpenWrt_Backup&Resotre.md     # 手动备份恢复
+│   ├── OpenWrt_Backup_Resotre.md     # 手动备份恢复
 │   ├── PPPoE_Connection.md           # 拨号配置
 │   ├── ExtendOverlaySize.md          # 空间扩容
 │   ├── Write_Image.md                # 烧录教程
