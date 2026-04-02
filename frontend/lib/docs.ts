@@ -368,10 +368,17 @@ export function homeHref(locale: DocLocale): string {
 }
 
 function resolveRepoRelativePath(currentRepoPath: string, targetPath: string): string | null {
+  const decodedTargetPath = (() => {
+    try {
+      return decodeURI(targetPath);
+    } catch {
+      return targetPath;
+    }
+  })();
   const fromDir = path.posix.dirname(currentRepoPath);
-  const normalized = targetPath.startsWith("/")
-    ? path.posix.normalize(targetPath.slice(1))
-    : path.posix.normalize(path.posix.join(fromDir, targetPath));
+  const normalized = decodedTargetPath.startsWith("/")
+    ? path.posix.normalize(decodedTargetPath.slice(1))
+    : path.posix.normalize(path.posix.join(fromDir, decodedTargetPath));
 
   if (!normalized || normalized.startsWith("../")) return null;
   return normalized;
