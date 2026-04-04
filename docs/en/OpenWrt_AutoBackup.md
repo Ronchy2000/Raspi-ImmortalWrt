@@ -1,4 +1,9 @@
-# 🌐 ImmortalWrt → Smart Automatic Backup
+# ImmortalWrt GitHub Auto Backup (Legacy Reference)
+
+> Note: this page is kept as a legacy reference for the older SSH + `configs/` snapshot workflow.
+> For the current recommended backup and maintenance path, read:
+> - `docs/OpenWrt_Backup_Resotre.md`
+> - `docs/System_Maintenance.md`
 
 ## Overview
 - **Script**: `/root/smart_backup.sh`
@@ -107,4 +112,3 @@ git diff abc1234 def5678 -- configs/network
 - **Backup before restore**: Always backup current config first
 - **Check compatibility**: Ensure backup version matches system
 - **Large files separate**: Manage OpenClash configs separately
-

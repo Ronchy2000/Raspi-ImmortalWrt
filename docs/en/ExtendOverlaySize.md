@@ -1,184 +1,238 @@
-# Safe Expansion of ImmortalWrt TF Card System
+# ImmortalWrt Overlay and Extroot Expansion (Advanced)
 
-Below is **the most concise, complete, and pitfall-free expansion tutorial**, including all commands from partitioning, formatting, mounting to verification.
-This can be saved for future reuse (universal for post-flashing and TF card replacement).
+This guide only applies when:
 
-# 🧱 ImmortalWrt TF Card Expansion Complete Tutorial (Stable Universal Version)
+- you are sure the router is using a `squashfs` image
+- `mount` shows `overlayfs:/overlay on / type overlay`
+- the actual limitation is writable package space in `/overlay`
 
-> Applicable to: ImmortalWrt / OpenWrt / FriendlyWrt / NanoPi / R2S / R4S / X86 and other devices
-> Goal: Expand TF card remaining space (e.g., 10G) as `/overlay` software installation area
+If you currently see:
 
-## 🧩 Phase 1: Preparation
+```text
+/dev/root on / type ext4
+```
 
-1️⃣ **Insert TF card and view existing partitions**
+stop here and go back to:
+
+- [Storage Expansion and Partitioning Guide](./Storage_Expansion_Guide.md)
+
+For an `ext4` root filesystem, the correct path is usually root partition expansion, not `extroot`.
+
+## Core idea
+
+`extroot` does not simply mean “add another partition”.
+
+It means:
+
+**move the writable layer of a `squashfs` system to a new ext4 partition.**
+
+That is why it is very different from adding a normal data partition.  
+If the migration is incomplete, the router may reboot into a state that looks like:
+
+- configuration loss
+- missing packages
+- a reset-like first boot
+
+## When `extroot` is worth considering
+
+Continue only when all of the following are true:
+
+1. the router is still on `squashfs + overlay`
+2. `/overlay` is frequently too small for package installs
+3. you already created a backup
+4. you are prepared to roll back if needed
+
+If your real goal is only to:
+
+- make room for Git repositories
+- store backup archives
+- keep large OpenClash assets
+
+choose the data partition route instead of `extroot`.
+
+## Confirm the starting point
+
+Run:
+
+```bash
+mount | grep overlay
+df -h
+block info
+```
+
+If you do not see `overlayfs:/overlay`, this guide is not the right one for your system.
+
+## Preparation
+
+### 1. Back up first
+
+```bash
+sysupgrade -b /tmp/pre-extroot-$(date +%F).tar.gz
+```
+
+### 2. Install the required tools
+
+```bash
+opkg update
+opkg install block-mount kmod-fs-ext4 e2fsprogs fdisk cfdisk rsync
+```
+
+If `rsync` is unavailable in your feed, use `cp -a` later instead.
+
+### 3. Confirm there is actual free space
 
 ```bash
 fdisk -l /dev/mmcblk0
 ```
 
-Or use a more intuitive approach:
+Only continue after confirming that unallocated space really exists on the card.
+
+## Step 1: create the ext4 partition
 
 ```bash
 cfdisk /dev/mmcblk0
 ```
 
-2️⃣ **Typical original partition layout:**
+Order of operations:
 
-```
-Device          Boot        Start        End    Sectors    Size   Id Type
-/dev/mmcblk0p1  *            8192     139263     131072     64M    c W95 FAT32 (LBA)
-/dev/mmcblk0p2             147456     761855     614400    300M   83 Linux
-Free space               761856   62333951   61572096   29.4G
-```
+1. select `Free space`
+2. choose `[ New ]`
+3. enter a size such as `8G`
+4. keep the type as `Linux`
+5. choose `[ Write ]`
+6. type `yes`
+7. choose `[ Quit ]`
 
-## 🧰 Phase 2: Partitioning (Using cfdisk)
+Assume the new partition is:
 
-1️⃣ Open partitioning tool:
-
-```bash
-cfdisk /dev/mmcblk0
-```
-
-2️⃣ Create a new partition in the **Free space** area:
-
-* Select `[ New ]`
-* Enter size, e.g., `10G`
-* Select type **ext4**
-
-3️⃣ Write changes:
-
-* Select `[ Write ]`
-* Type `yes`
-* Then select `[ Quit ]`
-
-Result should be similar to:
-
-```
-/dev/mmcblk0p3    761856   21733375   20971520   10G   83 Linux
+```text
+/dev/mmcblk0p3
 ```
 
-## ⚙️ Phase 3: Format New Partition
+## Step 2: format the new partition
 
 ```bash
 umount /dev/mmcblk0p3 2>/dev/null
-mkfs.ext4 -L overlay /dev/mmcblk0p3
-fsck.ext4 -f /dev/mmcblk0p3
+mkfs.ext4 -L extroot /dev/mmcblk0p3
+e2fsck -f /dev/mmcblk0p3
 ```
 
-Output should show:
+If the command warns that the partition already contains a filesystem, stop and inspect before formatting.
 
-```
-Creating filesystem with ...
-Writing superblocks and filesystem accounting information: done
-```
-
-✅ Indicates successful formatting.
-
-## 🗂 Phase 4: Mount Test
+## Step 3: temporary mount
 
 ```bash
-mkdir -p /mnt/overlay
-mount -t ext4 /dev/mmcblk0p3 /mnt/overlay
+mkdir -p /mnt/extroot
+mount -t ext4 /dev/mmcblk0p3 /mnt/extroot
 df -h | grep mmcblk0p3
 ```
 
-You should see:
+## Step 4: migrate the current overlay data
 
-```
-/dev/mmcblk0p3   9.7G   2.0M   9.2G   0% /mnt/overlay
-```
+This is the critical step.
 
-This indicates successful mounting.
-
-## 🧩 Phase 5: Set as System Overlay (Expansion Takes Effect)
-
-1️⃣ Install required components:
+Prepare the directories first:
 
 ```bash
-opkg update
-opkg install block-mount kmod-fs-ext4
+mkdir -p /mnt/extroot/upper
+mkdir -p /mnt/extroot/work
 ```
 
-2️⃣ Write mount configuration:
+Preferred method with `rsync`:
 
 ```bash
-mkdir -p /overlay
-uci set fstab.overlay=mount
-uci set fstab.overlay.target='/overlay'
-uci set fstab.overlay.device='/dev/mmcblk0p3'
-uci set fstab.overlay.fstype='ext4'
-uci set fstab.overlay.enabled='1'
+rsync -aHAX /overlay/ /mnt/extroot/
+sync
+```
+
+Fallback with `cp`:
+
+```bash
+cp -a /overlay/. /mnt/extroot/
+sync
+```
+
+Inspect the result:
+
+```bash
+ls -la /mnt/extroot
+```
+
+You should at least see:
+
+- `upper`
+- `work`
+
+## Step 5: write the `fstab` entry by UUID
+
+```bash
+UUID="$(block info /dev/mmcblk0p3 | sed -n 's/.*UUID=\"\\([^\"]*\\)\".*/\\1/p')"
+echo "$UUID"
+```
+
+Then configure:
+
+```bash
+uci set fstab.extroot=mount
+uci set fstab.extroot.target='/overlay'
+uci set fstab.extroot.uuid="$UUID"
+uci set fstab.extroot.fstype='ext4'
+uci set fstab.extroot.enabled='1'
 uci commit fstab
+
+/etc/init.d/fstab enable
 ```
 
-3️⃣ Enable and reboot:
+## Step 6: reboot and verify
 
 ```bash
-/etc/init.d/fstab enable
-/etc/init.d/fstab start
 reboot
 ```
 
-## 🚀 Phase 6: Verify Expansion Success
-
-After reboot, run:
+After reboot:
 
 ```bash
 mount | grep -E 'overlay|mmcblk0p3'
 df -h
 ```
 
-Output should be similar to:
+A successful result typically looks like:
 
-```
-/dev/mmcblk0p3 on /overlay type ext4 (rw,relatime)
-overlayfs:/overlay on / type overlay (rw,noatime,lowerdir=/,upperdir=/overlay/upper,workdir=/overlay/work)
-```
-
-Space display:
-
-```
-Filesystem         Size  Used Avail Use% Mounted on
-/dev/mmcblk0p3      9.7G  9.1M  9.2G   0% /overlay
-overlayfs:/overlay  9.7G  9.1M  9.2G   0% /
+```text
+/dev/mmcblk0p3 on /overlay type ext4
+overlayfs:/overlay on / type overlay
 ```
 
-✅ This indicates the system successfully uses `/dev/mmcblk0p3` as overlay.
-Installed software, configurations, and cache are all written to the 10G partition.
+## If the router looks “reset” after reboot
 
----
+Check these items first:
 
-## ⚙️ Phase 7: Optional Optimization
+1. was `/dev/mmcblk0p3` really mounted on `/overlay`
+2. is the `UUID` in `fstab` correct
+3. was `/overlay` fully copied into the new partition before reboot
+4. do `upper` and `work` exist on the new partition
 
-### (1) Disable journaling to reduce TF card writes:
+## Why disabling the ext4 journal is not recommended
+
+You may see other tutorials suggesting:
 
 ```bash
 tune2fs -O ^has_journal /dev/mmcblk0p3
-e2fsck -f /dev/mmcblk0p3
 ```
 
-### (2) Future expansion for more space:
+For a long-running router, this is usually not worth it.
 
-If the TF card still has remaining free space, you can create `/dev/mmcblk0p4` again in cfdisk and mount it to `/mnt/data` or `/opt`.
+Why:
 
----
+- the write reduction is limited
+- the failure risk after power loss or abnormal reboot is higher
 
-## 🧱 Phase 8: Verify Software Installation Location
+## One-line reminder
 
-```bash
-opkg update
-opkg install htop
-df -h
-```
+The important part of `extroot` is not just “mounting the new partition”.
 
-You will see the usage of `/` (overlay) increase, indicating that software is indeed installed into `/dev/mmcblk0p3`.
+It is **migrating the old overlay correctly**.
 
----
+If you only need more room for repositories, backup archives, or large files, go back to:
 
-## ✅ Summary
-
-> Create 10G partition via cfdisk → Format with mkfs.ext4 → Set `/overlay` in fstab → Reboot.
-> System root directory automatically switches to 10G overlayfs.
-> ImmortalWrt expansion successful, space persistently writable, install software freely 🚀.
-
----
+- [Storage Expansion and Partitioning Guide](./Storage_Expansion_Guide.md)

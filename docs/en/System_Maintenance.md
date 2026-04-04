@@ -7,7 +7,7 @@
 - [System Information](#system-information)
 - [Automated Monitoring](#automated-monitoring)
 - [Troubleshooting](#troubleshooting)
-- [SD Card Lifetime Optimization](#sd-card-lifetime-optimization)
+- [Storage and SD Card Maintenance](#storage-and-sd-card-maintenance)
 - [Routine Maintenance](#routine-maintenance)
 - [Quick Reference Commands](#quick-reference-commands)
 - [Important Paths](#important-paths)
@@ -65,15 +65,14 @@ Check logs:
 tail -50 /root/luci_watchdog.log
 ```
 
-### 3. Smart Backup (daily, on-demand backup logic)
+### 3. Smart Backup (daily, change-triggered backup logic)
 
 - **Script**: `/root/smart_backup.sh`
 - **Core features**:
-  - Backup only when `/etc/config` changes
-  - Extract config files for Git diff/history
-  - Auto commit message generation
-  - Save both restore package (`.tar.gz`) and plain config snapshot
-  - Local and remote retention strategy
+  - Create a new restore archive only when configuration changes are detected
+  - Keep the backup output focused on `sysupgrade`-restorable `.tar.gz` archives
+  - Keep the latest 3 archives locally and the latest 7 in GitHub
+  - Support branch-based separation such as `campus` and `home`
 
 Check logs:
 
@@ -84,7 +83,7 @@ tail -50 /root/smart_backup.log
 Run backup manually:
 
 ```bash
-/root/smart_backup.sh
+/root/smart_backup.sh --force
 ```
 
 ### Suggested Scheduling
@@ -195,55 +194,68 @@ ps aux | sort -k4 -r | head -10
 
 ---
 
-## SD Card Lifetime Optimization
+## Storage and SD Card Maintenance
 
-### Partition Overview (example)
+Do not assume every Raspberry Pi image uses the same partition layout.
 
-```
-Total:      32GB (29.72 GiB)
-Partition1: 64MB   boot
-Partition2: 300MB  rootfs (read-only)
-Partition3: 10GB   overlay (writable user data)
-Unallocated: ~20GB
-```
+The two common cases are:
 
-Why only 10GB writable?
+- `ext4` image: `mount` shows `/dev/root on / type ext4`
+- `squashfs` image: `mount` shows `overlayfs:/overlay on / type overlay`
 
-- This is a common default layout in ImmortalWrt images.
-- It is enough for typical router usage.
-- Remaining space is unused until you expand manually.
+These systems should not be expanded in the same way:
 
-Expand overlay (if needed):
+- an `ext4` root filesystem is usually best handled by expanding the root partition
+- a `squashfs` system should first distinguish between a separate data partition and `extroot`
+
+Before changing partitions, always inspect:
 
 ```bash
-# After extending partition 3 with fdisk:
-resize2fs /dev/mmcblk0p3
+mount
+df -h
+block info
+uci show fstab
 ```
 
-### Endurance Estimate
+If you mainly want more room for packages, Git repositories, or backup archives, start with:
 
-- Typical SD endurance assumption: ~320GB TBW
-- Daily writes (optimized): around `65MB/day`
-- Estimated lifetime: 10+ years under normal usage
+- [Storage Expansion and Partitioning Guide](./Storage_Expansion_Guide.md)
 
-### Optimization Checklist
+Only open the `extroot` guide after confirming that the system is still on the `squashfs + overlay` path:
 
-1. Keep local backup retention small (for example, latest 3 archives).
-2. Use tmpfs-based intermediate operations where possible.
-3. Avoid unnecessary full reboots; restart services instead.
-4. Rotate or trim logs periodically.
+- [Overlay / Extroot Expansion (Advanced)](./ExtendOverlaySize.md)
 
-Optional log cleanup:
+---
+
+## Routine Maintenance
+
+Suggested daily checks:
+
+1. check free space with `df -h`
+2. check key services such as `openclash` and `uhttpd`
+3. check the smart backup log
+4. review recent system logs
+5. create a backup before network or plugin changes
+
+Related docs:
+
+- [Manual Backup and Restore](./OpenWrt_Backup_Resotre.md)
+- [ImmortalWrt GitHub Auto Backup (Legacy Reference)](./OpenWrt_AutoBackup.md)
+
+### Write and log management
+
+1. keep backup retention limited to what you actually need
+2. use `/tmp` for temporary processing where possible
+3. restart services instead of rebooting the whole router
+4. trim logs periodically if they are no longer useful
+
+Optional cleanup:
 
 ```bash
 > /root/health_monitor.log
 > /root/luci_watchdog.log
 > /root/smart_backup.log
 ```
-
----
-
-## Routine Maintenance
 
 ### Weekly
 
@@ -260,8 +272,8 @@ free -h
 ### Monthly
 
 ```bash
-# Check backup repository status
-# (replace with your own repo URL)
+# Check recent restore archives
+ls -lh /root/*.tar.gz 2>/dev/null
 
 # Optional log cleanup
 > /root/health_monitor.log
@@ -333,11 +345,10 @@ tail -50 /root/smart_backup.log
 ├── luci_watchdog.log
 ├── smart_backup.sh
 ├── smart_backup.log
-└── immortalwrt-backup/
+└── *.tar.gz
 
 /etc/
 ├── config/
-├── openclash/
 └── init.d/
 
 /var/log/
@@ -350,4 +361,3 @@ tail -50 /root/smart_backup.log
 - SSH: `ssh root@192.168.1.1`
 - Web UI: `http://192.168.1.1`
 - Backup repository: `https://github.com/Ronchy2000/Immortalwrt-AutoBackup`
-

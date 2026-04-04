@@ -37,6 +37,27 @@ const EXCLUDED_DIRS = new Set([
   "build"
 ]);
 
+// Catalog order is intentionally curated for readers.
+// Rule: beginner-first, operational docs before advanced/internal references.
+// When adding a new user-facing doc under README/docs/, also update
+// docs/Documentation_Style_Guide.md and this table if ordering matters.
+const DOC_CATALOG_ORDER: Record<string, number> = {
+  "README.md": 0,
+  "README_EN.md": 0,
+  "docs/Write_Image.md": 10,
+  "docs/Lan_Connectioin.md": 20,
+  "docs/PPPoE_Connection.md": 21,
+  "docs/Openclash_Config.md": 30,
+  "docs/OpenWrt_Backup_Resotre.md": 40,
+  "docs/System_Maintenance.md": 41,
+  "docs/Storage_Expansion_Guide.md": 42,
+  "docs/ExtendOverlaySize.md": 43,
+  "docs/OpenWrt_AutoBackup.md": 44,
+  "docs/GitHub_SSH_22_Port_Blocking.md": 45,
+  "scripts/README.md": 50,
+  "changelogs/README.md": 60
+};
+
 let cache: CacheState | null = null;
 
 function normalizeRelPath(relPath: string): string {
@@ -54,6 +75,18 @@ function scoreDoc(repoPath: string): number {
   if (repoPath.startsWith("scripts/")) return 3;
   if (repoPath.startsWith("changelogs/")) return 4;
   return 5;
+}
+
+function catalogOrder(repoPath: string): number {
+  const normalized = normalizeRelPath(repoPath);
+  const enDirPath = parseEnDirectoryPath(normalized);
+  if (enDirPath) {
+    return DOC_CATALOG_ORDER[enDirPath.baseMdPath] ?? 999;
+  }
+  if (/_EN\.md$/i.test(normalized)) {
+    return DOC_CATALOG_ORDER[normalized.replace(/_EN\.md$/i, ".md")] ?? 999;
+  }
+  return DOC_CATALOG_ORDER[normalized] ?? 999;
 }
 
 function toPlainText(input: string): string {
@@ -304,7 +337,12 @@ async function buildCache(): Promise<CacheState> {
   const finalize = (map: Map<string, DocRecord>) => {
     const records = [...map.values()].sort((a, b) => {
       const scoreDiff = scoreDoc(a.repoPath) - scoreDoc(b.repoPath);
-      return scoreDiff !== 0 ? scoreDiff : a.repoPath.localeCompare(b.repoPath);
+      if (scoreDiff !== 0) return scoreDiff;
+
+      const orderDiff = catalogOrder(a.repoPath) - catalogOrder(b.repoPath);
+      if (orderDiff !== 0) return orderDiff;
+
+      return a.repoPath.localeCompare(b.repoPath);
     });
     return {
       records,

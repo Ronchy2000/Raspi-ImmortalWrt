@@ -32,7 +32,8 @@ function groupName(docKey: string): string {
     docKey === "docs/OpenWrt_Backup_Resotre" ||
     docKey === "docs/OpenWrt_AutoBackup" ||
     docKey === "docs/System_Maintenance" ||
-    docKey === "docs/ExtendOverlaySize"
+    docKey === "docs/ExtendOverlaySize" ||
+    docKey === "docs/Storage_Expansion_Guide"
   ) {
     return "maintenance";
   }

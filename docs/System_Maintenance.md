@@ -4,14 +4,15 @@
 
 ## 📋 目录
 
-- [系统信息](#系统信息)
-- [自动化监控](#自动化监控)
-- [故障排查](#故障排查)
-- [SD卡寿命优化](#sd卡寿命优化)
-- [日常维护](#日常维护)
+- [系统信息](#system-info)
+- [自动化监控](#automation)
+- [故障排查](#troubleshooting)
+- [存储与 SD 卡维护](#sdcard)
+- [日常维护](#daily-maintenance)
 
 ---
 
+<a id="system-info"></a>
 ## 系统信息
 
 ### 硬件配置
@@ -27,6 +28,7 @@
 
 ---
 
+<a id="automation"></a>
 ## 自动化监控
 
 系统已配置三个自动化监控脚本，确保系统稳定运行。
@@ -66,24 +68,24 @@ tail -50 /root/luci_watchdog.log
 **脚本位置**: `/root/smart_backup.sh` (替代旧版 `github_backup_optimized.sh`)
 
 **核心特性**:
-- **按需备份**: 智能识别 `/etc/config` 变更，无修改不备份。
-- **变更追踪**: 自动提取配置文件到 Git，实现代码级的配置版本管理。
-- **语义化提交**: 自动生成 Commit Message (如 `Update: network, wireless`)。
-- **双重存档**: 同时保存 `sysupgrade` 恢复包 (tar.gz) 和明文配置 (configs/)。
+- **按需备份**: 仅在配置发生变化时生成新的恢复包。
+- **恢复直接**: 备份产物以 `sysupgrade` 可恢复的 `.tar.gz` 为主。
+- **保留策略**: 本地保留最近 3 份，云端保留最近 7 份。
+- **分支隔离**: 可按 `campus`、`home` 等场景分支分别保存备份历史。
 
 **工作流程**:
 1. **稳定性检查**:
     - **运行时间**: 检查系统运行时间，若不足 10 分钟则自动等待，确保系统完全启动且稳定。
     - **时间同步**: 检查系统时间是否准确 (NTP)。
     - **网络连通**: 检查互联网连接 (Ping 8.8.8.8/223.5.5.5)，自动重试直到连通。
-2. **生成备份**: 生成备份到内存 (`/tmp`)。
-3. **差异比对**: 解压并比对配置差异。
+2. **生成恢复包**: 在内存目录中生成备份，避免中间过程放大写入。
+3. **变更判断**: 仅当系统配置或关键配置指纹发生变化时继续。
 4. **执行备份**:
-    - 若有变更: 提交 Git (包含变更列表) -> 推送 GitHub。
-    - 若无变更: 跳过，节省空间。
+    - 若有变更: 生成新的 `.tar.gz` -> 提交 Git -> 推送 GitHub。
+    - 若无变更: 跳过本轮备份。
 5. **保留策略**:
-    - 本地: 保留最近 3 份 `.tar.gz`。
-    - 远程 (GitHub): 保留最近 30 份 `.tar.gz`，配置文件永久保留历史记录。
+    - 本地: 保留最近 3 份 `.tar.gz`
+    - 远程 (GitHub): 保留最近 7 份 `.tar.gz`
 
 **查看日志**:
 ```bash
@@ -92,7 +94,7 @@ tail -50 /root/smart_backup.log
 
 **手动备份**:
 ```bash
-/root/smart_backup.sh
+/root/smart_backup.sh --force
 ```
 
 ### 定时任务配置
@@ -110,22 +112,15 @@ tail -50 /root/smart_backup.log
 ```bash
 # 在 exit 0 之前添加
 /root/smart_backup.sh &
-```
-# 每天 15:00 执行智能备份
-0 15 * * * /root/smart_backup.sh
+exit 0
 ```
 
-2. **开机自检 (rc.local)**:
-为了防止 15:00 关机导致错过备份，建议在 `/etc/rc.local` 中添加启动执行。脚本内置了变更检测，即使多次运行也不会产生重复备份。
+查看所有定时任务与常用任务示例：
 ```bash
-# 在 exit 0 之前添加
-/root/smart_backup.sh &
-```
-# 查看所有定时任务
 crontab -l
 
-# 主要定时任务列表
-0 15 * * * /root/github_backup.sh cron >> /root/github_backup.log 2>&1  # 每天15:00备份
+# 主要定时任务列表示例
+0 15 * * * /root/smart_backup.sh >> /root/smart_backup.log 2>&1  # 每天 15:00 备份
 */30 * * * * /root/health_monitor.sh      # 每30分钟健康检查
 */5 * * * * /root/luci_watchdog.sh        # 每5分钟LuCI看门狗
 
@@ -139,6 +134,7 @@ crontab -l
 
 ---
 
+<a id="troubleshooting"></a>
 ## 故障排查
 
 ### haproxy 崩溃循环问题 ⚠️
@@ -235,87 +231,70 @@ echo 3 > /proc/sys/vm/drop_caches
 
 ---
 
-## SD卡寿命优化
+<a id="sdcard"></a>
+## 存储与 SD 卡维护
 
-### 空间分配说明
+不要假设所有树莓派镜像都长成同一种分区结构。
 
-你的 32GB SD卡空间分配:
-```
-总容量:   32GB (29.72 GiB)
-分区1:    64MB   (boot分区)
-分区2:    300MB  (rootfs 只读系统)
-分区3:    10GB   (overlay 数据分区) ← 用户数据在这里
-未分配:   ~20GB  (安装时未使用)
-```
+常见情况有两类：
 
-**为什么只有10GB可用?**
-- 这是 ImmortalWrt 安装时的默认分区策略
-- 10GB 足够日常使用 (目前仅用11%)
-- 剩余20GB未分配，不影响功能
+- `ext4` 固件：`/dev/root on / type ext4`
+- `squashfs` 固件：`overlayfs:/overlay on / type overlay`
 
-**如需扩容**:
+这两类系统的扩容方式不同：
+
+- `ext4` 根分区更适合直接扩容根分区
+- `squashfs` 系统更适合先区分“数据分区”与 `extroot`
+
+每次准备改分区前，先执行：
+
 ```bash
-# 使用 fdisk 扩展分区3，然后
-resize2fs /dev/mmcblk0p3
+mount
+df -h
+block info
+uci show fstab
 ```
 
-### 写入寿命评估
+如果你只是准备安装更多插件，或准备把 Git 仓库、备份包放到设备上，先看：
 
-**SD卡耐久性**: 典型320GB TBW (Total Bytes Written)
+- [存储扩容与分区指南](./Storage_Expansion_Guide.md)
 
-**优化前**:
-- 每天写入: ~71MB (备份21MB + 系统50MB)
-- 年写入量: 25.9GB
-- 预计寿命: 12.4年 ✓
+只有在你确认自己仍在 `squashfs + overlay` 路线，并且 `/overlay` 软件空间长期不够时，再看：
 
-**优化后**:
-- 每天写入: ~65MB (优化备份策略)
-- 年写入量: 23.7GB
-- 预计寿命: 13.5年 ✓✓
-
-### 优化措施
-
-1. **备份策略优化**
-   - 本地保留: 7天 → 3份最新 (节省58%)
-   - 使用 tmpfs 减少 SD 卡写入
-   - GitHub 远程30天备份不变
-
-2. **日志管理** (可选)
-   ```bash
-   # 限制日志大小
-   logread -S 256
-   
-   # 清理旧日志
-   > /root/health_monitor.log
-   > /root/luci_watchdog.log
-   ```
-
-3. **避免频繁重启**
-   - 每次重启都有大量写入
-   - 使用服务重启代替系统重启
-
-### 数据安全
-
-✅ 本地: 3个最新备份 (~62MB)  
-✅ GitHub: 30天历史备份  
-✅ 自动化: 每天15:00自动备份  
-✅ 日志: 所有操作都有记录
-
-**验证备份**:
-```bash
-# 查看本地备份
-ls -lh /root/immortalwrt-backup/*.tar.gz
-
-# 查看备份空间
-du -sh /root/immortalwrt-backup/
-
-# 查看 SD 卡使用
-df -h /overlay
-```
+- [Overlay / Extroot 扩容（进阶版）](./ExtendOverlaySize.md)
 
 ---
 
+<a id="daily-maintenance"></a>
 ## 日常维护
+
+建议按下面的顺序做日常检查：
+
+1. 查看磁盘剩余空间：`df -h`
+2. 查看关键服务状态：`/etc/init.d/openclash status`、`/etc/init.d/uhttpd status`
+3. 查看自动备份日志：`tail -50 /root/smart_backup.log`
+4. 查看系统日志：`logread | tail -50`
+5. 调整网络或插件前先做一次备份
+
+相关文档：
+
+- [手动备份与恢复](./OpenWrt_Backup_Resotre.md)
+- [ImmortalWrt GitHub 自动备份（旧版参考）](./OpenWrt_AutoBackup.md)
+
+### 写入与日志管理建议
+
+1. 备份保留数量保持在必要范围内
+2. 中间处理尽量放到 `/tmp`
+3. 使用服务重启代替整机重启
+4. 定期清理长期不用的日志
+
+可选清理：
+
+```bash
+> /root/health_monitor.log
+> /root/luci_watchdog.log
+> /root/smart_backup.log
+```
 
 ### 每周检查
 
@@ -340,13 +319,13 @@ free -h
 ### 每月维护
 
 ```bash
-# 1. 验证备份
-# 访问 GitHub 仓库: https://github.com/Ronchy2000/Immortalwrt-AutoBackup
+# 1. 检查备份仓库与最近备份
+ls -lh /root/*.tar.gz 2>/dev/null
 
 # 2. 清理日志 (可选)
 > /root/health_monitor.log
 > /root/luci_watchdog.log
-> /root/github_backup.log
+> /root/smart_backup.log
 
 # 3. 检查系统更新
 opkg update
@@ -362,13 +341,15 @@ uptime
 - ❌ 不要启用 haproxy (除非需要负载均衡)
 - ❌ 不要删除监控脚本
 - ❌ 不要随意修改 OpenClash 配置
-- ❌ 不要频繁重启系统
+- ❌ 不要在没确认分区用途前直接执行 `mkfs.ext4`
+- ❌ 不要在 `ext4` 根分区系统上照着 `extroot` 教程操作
 
 **推荐做**:
 - ✅ 定期查看监控日志
 - ✅ 保持备份正常运行
 - ✅ 遇到问题先查日志
 - ✅ 使用服务重启而非系统重启
+- ✅ 改分区前先执行 `mount`、`df -h`、`block info`、`uci show fstab`
 
 ---
 

@@ -75,10 +75,11 @@ This project provides a **complete Raspberry Pi software router configuration so
 If you have backup and restore needs:
   - Manual Backup & Restore: [docs/OpenWrt_Backup_Resotre.md](docs/OpenWrt_Backup_Resotre.md)
 
-  - Scheduled Automatic Backup Settings: [docs/OpenWrt_AutoBackup.md](docs/OpenWrt_AutoBackup.md)
+  - Legacy GitHub Auto Backup Reference: [docs/OpenWrt_AutoBackup.md](docs/OpenWrt_AutoBackup.md)
 
 4. Software Space Expansion
-  - Expand Overlay Space: [docs/ExtendOverlaySize.md](docs/ExtendOverlaySize.md)
+  - Identify the system type first, then choose the path: [docs/Storage_Expansion_Guide.md](docs/Storage_Expansion_Guide.md)
+  - Advanced path for `squashfs + overlay` only: [docs/ExtendOverlaySize.md](docs/ExtendOverlaySize.md)
 
 5. OpenClash Network Access Settings
   - Network Access Plugin Configuration: [docs/Openclash_Config.md](docs/Openclash_Config.md)

@@ -1,7 +1,12 @@
 <a id="chinese"></a>
 [🇨🇳 中文文档](#chinese) | [🇺🇸 English](#english)
 
-# ImmortalWrt 智能自动备份 (Smart Backup)
+# ImmortalWrt GitHub 自动备份（旧版参考）
+
+> 说明：这篇文档保留为旧版参考，内容基于早期的 SSH + `configs/` 明文快照方案。
+> 如果你只想了解当前推荐的备份与维护思路，请优先阅读：
+> - `docs/OpenWrt_Backup_Resotre.md`
+> - `docs/System_Maintenance.md`
 
 ## 概览
 
@@ -247,7 +252,7 @@ rm -rf configs/ .git
 <a id="english"></a>
 [🇨🇳 中文文档](#chinese) | [🇺🇸 English](#english)
 
-# 🌐 ImmortalWrt → Smart Automatic Backup
+# ImmortalWrt GitHub Auto Backup (Legacy Reference)
 
 ## Overview
 - **Script**: `/root/smart_backup.sh`

@@ -1,379 +1,238 @@
-<a id="chinese"></a>
-[🇨🇳 中文文档](#chinese) | [🇺🇸 English](#english)
-# ImmortalWrt TF 卡系统的安全扩容
+[🇨🇳 中文文档](./ExtendOverlaySize.md) | [🇺🇸 English](./en/ExtendOverlaySize.md)
 
-下面为一份 **最简洁、完整、无坑版的扩容教程**，包含从分区、格式化、挂载到验证的全部命令。
-这份可以直接保存以后复用（刷机后、换 TF 卡都通用）。
+# ImmortalWrt Overlay 与 Extroot 扩容（进阶版）
 
-# 🧱 ImmortalWrt TF 卡扩容完整教程（稳定通用版）
+本文只适用于：
 
-> 适用于：ImmortalWrt / OpenWrt / FriendlyWrt / NanoPi / R2S / R4S / X86 等设备
-> 目标：将 TF 卡剩余空间（例如 10G）扩容为 `/overlay` 软件安装区
+- 你确认自己刷的是 `squashfs` 固件
+- `mount` 中能看到 `overlayfs:/overlay on / type overlay`
+- 你真正不够的是 `/overlay` 软件空间
 
-## 🧩 一、准备阶段
+如果你当前看到的是：
 
-1️⃣ **插入 TF 卡并查看现有分区**
+```text
+/dev/root on / type ext4
+```
+
+请不要继续读这篇。你应该回到：
+
+- [存储扩容与分区指南](./Storage_Expansion_Guide.md)
+
+对于 `ext4` 根分区系统，正确路线通常是扩容根分区，而不是配置 `extroot`。
+
+## 先说结论
+
+`extroot` 不是“多挂一个分区”。
+
+它的本质是：
+
+**把 `squashfs` 系统原本的可写层完整迁移到新的 ext4 分区。**
+
+因此它和单独创建数据分区完全不同。  
+如果迁移过程漏了任何一步，重启后系统可能表现为：
+
+- 配置丢失
+- 插件消失
+- 像重新初始化一样启动
+
+## 哪些情况才值得考虑 `extroot`
+
+只有在下面这些条件同时成立时，才建议继续：
+
+1. 当前系统仍是 `squashfs + overlay`
+2. `/overlay` 经常因为安装软件而空间不足
+3. 你已经完成备份
+4. 你能接受出问题后自己回滚
+
+如果你只是想：
+
+- 给 Git 仓库腾空间
+- 存备份包
+- 放 OpenClash 大文件
+
+那优先考虑数据分区方案，而不是 `extroot`。
+
+## 动手前先确认
+
+先执行：
+
+```bash
+mount | grep overlay
+df -h
+block info
+```
+
+如果这里看不到 `overlayfs:/overlay`，就说明你不在本文的适用范围内。
+
+## 操作前准备
+
+### 1. 先备份
+
+```bash
+sysupgrade -b /tmp/pre-extroot-$(date +%F).tar.gz
+```
+
+### 2. 安装工具
+
+```bash
+opkg update
+opkg install block-mount kmod-fs-ext4 e2fsprogs fdisk cfdisk rsync
+```
+
+如果仓库里没有 `rsync`，后面可以改用 `cp -a`。
+
+### 3. 确认存在可用空闲空间
 
 ```bash
 fdisk -l /dev/mmcblk0
 ```
 
-或使用更直观的：
+只有在确认卡上确实还有未分配空间时，才继续新建分区。
+
+## 步骤一：新建 ext4 分区
 
 ```bash
 cfdisk /dev/mmcblk0
 ```
 
-2️⃣ **典型原始分区布局：**
+操作顺序：
 
-```
-Device          Boot        Start        End    Sectors    Size   Id Type
-/dev/mmcblk0p1  *            8192     139263     131072     64M    c W95 FAT32 (LBA)
-/dev/mmcblk0p2             147456     761855     614400    300M   83 Linux
-Free space               761856   62333951   61572096   29.4G
-```
+1. 选中 `Free space`
+2. 选择 `[ New ]`
+3. 输入大小，例如 `8G`
+4. 保持 `Linux`
+5. 选择 `[ Write ]`
+6. 输入 `yes`
+7. 选择 `[ Quit ]`
 
+下面假设新分区为：
 
-## 🧰 二、分区操作（使用 cfdisk）
-
-1️⃣ 打开分区工具：
-
-```bash
-cfdisk /dev/mmcblk0
+```text
+/dev/mmcblk0p3
 ```
 
-2️⃣ 在 **Free space** 区域新建分区：
-
-* 选择 `[ New ]`
-* 输入大小，例如 `10G`
-* 类型选 **ext4**
-
-3️⃣ 写入修改：
-
-* 选择 `[ Write ]`
-* 输入 `yes`
-* 再选 `[ Quit ]`
-
-结果类似：
-
-```
-/dev/mmcblk0p3    761856   21733375   20971520   10G   83 Linux
-```
-
-
-## ⚙️ 三、格式化新分区
+## 步骤二：格式化新分区
 
 ```bash
 umount /dev/mmcblk0p3 2>/dev/null
-mkfs.ext4 -L overlay /dev/mmcblk0p3
-fsck.ext4 -f /dev/mmcblk0p3
+mkfs.ext4 -L extroot /dev/mmcblk0p3
+e2fsck -f /dev/mmcblk0p3
 ```
 
-输出中应出现：
+如果此时提示新分区中已经包含某个文件系统，先停下来，不要无脑继续格式化。
 
-```
-Creating filesystem with ...
-Writing superblocks and filesystem accounting information: done
-```
-
-✅ 表示格式化成功。
-
-
-## 🗂 四、挂载测试
+## 步骤三：临时挂载
 
 ```bash
-mkdir -p /mnt/overlay
-mount -t ext4 /dev/mmcblk0p3 /mnt/overlay
+mkdir -p /mnt/extroot
+mount -t ext4 /dev/mmcblk0p3 /mnt/extroot
 df -h | grep mmcblk0p3
 ```
 
-看到：
+## 步骤四：迁移当前 overlay 数据
 
-```
-/dev/mmcblk0p3   9.7G   2.0M   9.2G   0% /mnt/overlay
-```
+这是最关键的一步。
 
-说明挂载成功。
-
-
-## 🧩 五、设置为系统 Overlay（扩容生效）
-
-1️⃣ 安装必须组件：
+先准备目录：
 
 ```bash
-opkg update
-opkg install block-mount kmod-fs-ext4
+mkdir -p /mnt/extroot/upper
+mkdir -p /mnt/extroot/work
 ```
 
-2️⃣ 写入挂载配置：
+优先使用 `rsync`：
 
 ```bash
-mkdir -p /overlay
-uci set fstab.overlay=mount
-uci set fstab.overlay.target='/overlay'
-uci set fstab.overlay.device='/dev/mmcblk0p3'
-uci set fstab.overlay.fstype='ext4'
-uci set fstab.overlay.enabled='1'
+rsync -aHAX /overlay/ /mnt/extroot/
+sync
+```
+
+如果没有 `rsync`，改用：
+
+```bash
+cp -a /overlay/. /mnt/extroot/
+sync
+```
+
+迁移后检查：
+
+```bash
+ls -la /mnt/extroot
+```
+
+你至少应当能看到：
+
+- `upper`
+- `work`
+
+## 步骤五：用 UUID 写入 `fstab`
+
+```bash
+UUID="$(block info /dev/mmcblk0p3 | sed -n 's/.*UUID=\"\\([^\"]*\\)\".*/\\1/p')"
+echo "$UUID"
+```
+
+然后写入：
+
+```bash
+uci set fstab.extroot=mount
+uci set fstab.extroot.target='/overlay'
+uci set fstab.extroot.uuid="$UUID"
+uci set fstab.extroot.fstype='ext4'
+uci set fstab.extroot.enabled='1'
 uci commit fstab
+
+/etc/init.d/fstab enable
 ```
 
-3️⃣ 启用并重启：
+## 步骤六：重启并验证
 
 ```bash
-/etc/init.d/fstab enable
-/etc/init.d/fstab start
 reboot
 ```
 
-
-## 🚀 六、验证扩容是否成功
-
-重启后运行：
+重启后执行：
 
 ```bash
 mount | grep -E 'overlay|mmcblk0p3'
 df -h
 ```
 
-输出应类似：
+成功时通常会看到：
 
-```
-/dev/mmcblk0p3 on /overlay type ext4 (rw,relatime)
-overlayfs:/overlay on / type overlay (rw,noatime,lowerdir=/,upperdir=/overlay/upper,workdir=/overlay/work)
-```
-
-空间显示：
-
-```
-Filesystem         Size  Used Avail Use% Mounted on
-/dev/mmcblk0p3      9.7G  9.1M  9.2G   0% /overlay
-overlayfs:/overlay  9.7G  9.1M  9.2G   0% /
+```text
+/dev/mmcblk0p3 on /overlay type ext4
+overlayfs:/overlay on / type overlay
 ```
 
-✅ 表示系统已成功使用 `/dev/mmcblk0p3` 作为 overlay，
-安装的软件、配置、缓存都写入 10G 分区。
+## 如果重启后像“系统被重置”
 
----
+优先检查：
 
-## ⚙️ 七、可选优化
+1. `/dev/mmcblk0p3` 是否真的挂到了 `/overlay`
+2. `fstab` 里是不是写对了 `UUID`
+3. `/mnt/extroot` 中原先是否完整复制了 `/overlay`
+4. 新分区里是否存在 `upper` 和 `work`
 
-### （1）关闭日志以减少 TF 写入：
+## 不建议关闭 ext4 journal
+
+你可能会在其他教程里看到：
 
 ```bash
 tune2fs -O ^has_journal /dev/mmcblk0p3
-e2fsck -f /dev/mmcblk0p3
 ```
 
-### （2）未来扩容更多空间：
+对长期在线的路由器，我不建议这么做。
 
-如果 TF 卡还有剩余 free space，可以再在 cfdisk 中新建 `/dev/mmcblk0p4`，挂载到 `/mnt/data` 或 `/opt`。
+原因是：
 
----
+- 节省的写入量有限
+- 但掉电或异常重启后的风险更高
 
-## 🧱 八、验证软件安装位置
+## 一句话提醒
 
-```bash
-opkg update
-opkg install htop
-df -h
-```
+`extroot` 的关键不是“挂上去”，而是“把旧的 overlay 完整迁移过去”。
 
-你会看到 `/`（overlay） 的使用率增加，这说明软件确实装进了 `/dev/mmcblk0p3`。
+如果你的目标只是多放一些仓库、备份包或大文件，请回到：
 
----
-
-## ✅ 总结
-
-> 通过 cfdisk 新建 10G 分区 → mkfs.ext4 格式化 → fstab 设置 `/overlay` → 重启。
-> 系统根目录自动切换为 10G overlayfs，
-> ImmortalWrt 扩容成功，空间持久可写，软件随意安装 🚀。
-
----
-
-<a id="english"></a>
-[🇨🇳 中文文档](#chinese) | [🇺🇸 English](#english)
-
-# Safe Expansion of ImmortalWrt TF Card System
-
-Below is **the most concise, complete, and pitfall-free expansion tutorial**, including all commands from partitioning, formatting, mounting to verification.
-This can be saved for future reuse (universal for post-flashing and TF card replacement).
-
-# 🧱 ImmortalWrt TF Card Expansion Complete Tutorial (Stable Universal Version)
-
-> Applicable to: ImmortalWrt / OpenWrt / FriendlyWrt / NanoPi / R2S / R4S / X86 and other devices
-> Goal: Expand TF card remaining space (e.g., 10G) as `/overlay` software installation area
-
-## 🧩 Phase 1: Preparation
-
-1️⃣ **Insert TF card and view existing partitions**
-
-```bash
-fdisk -l /dev/mmcblk0
-```
-
-Or use a more intuitive approach:
-
-```bash
-cfdisk /dev/mmcblk0
-```
-
-2️⃣ **Typical original partition layout:**
-
-```
-Device          Boot        Start        End    Sectors    Size   Id Type
-/dev/mmcblk0p1  *            8192     139263     131072     64M    c W95 FAT32 (LBA)
-/dev/mmcblk0p2             147456     761855     614400    300M   83 Linux
-Free space               761856   62333951   61572096   29.4G
-```
-
-## 🧰 Phase 2: Partitioning (Using cfdisk)
-
-1️⃣ Open partitioning tool:
-
-```bash
-cfdisk /dev/mmcblk0
-```
-
-2️⃣ Create a new partition in the **Free space** area:
-
-* Select `[ New ]`
-* Enter size, e.g., `10G`
-* Select type **ext4**
-
-3️⃣ Write changes:
-
-* Select `[ Write ]`
-* Type `yes`
-* Then select `[ Quit ]`
-
-Result should be similar to:
-
-```
-/dev/mmcblk0p3    761856   21733375   20971520   10G   83 Linux
-```
-
-## ⚙️ Phase 3: Format New Partition
-
-```bash
-umount /dev/mmcblk0p3 2>/dev/null
-mkfs.ext4 -L overlay /dev/mmcblk0p3
-fsck.ext4 -f /dev/mmcblk0p3
-```
-
-Output should show:
-
-```
-Creating filesystem with ...
-Writing superblocks and filesystem accounting information: done
-```
-
-✅ Indicates successful formatting.
-
-## 🗂 Phase 4: Mount Test
-
-```bash
-mkdir -p /mnt/overlay
-mount -t ext4 /dev/mmcblk0p3 /mnt/overlay
-df -h | grep mmcblk0p3
-```
-
-You should see:
-
-```
-/dev/mmcblk0p3   9.7G   2.0M   9.2G   0% /mnt/overlay
-```
-
-This indicates successful mounting.
-
-## 🧩 Phase 5: Set as System Overlay (Expansion Takes Effect)
-
-1️⃣ Install required components:
-
-```bash
-opkg update
-opkg install block-mount kmod-fs-ext4
-```
-
-2️⃣ Write mount configuration:
-
-```bash
-mkdir -p /overlay
-uci set fstab.overlay=mount
-uci set fstab.overlay.target='/overlay'
-uci set fstab.overlay.device='/dev/mmcblk0p3'
-uci set fstab.overlay.fstype='ext4'
-uci set fstab.overlay.enabled='1'
-uci commit fstab
-```
-
-3️⃣ Enable and reboot:
-
-```bash
-/etc/init.d/fstab enable
-/etc/init.d/fstab start
-reboot
-```
-
-## 🚀 Phase 6: Verify Expansion Success
-
-After reboot, run:
-
-```bash
-mount | grep -E 'overlay|mmcblk0p3'
-df -h
-```
-
-Output should be similar to:
-
-```
-/dev/mmcblk0p3 on /overlay type ext4 (rw,relatime)
-overlayfs:/overlay on / type overlay (rw,noatime,lowerdir=/,upperdir=/overlay/upper,workdir=/overlay/work)
-```
-
-Space display:
-
-```
-Filesystem         Size  Used Avail Use% Mounted on
-/dev/mmcblk0p3      9.7G  9.1M  9.2G   0% /overlay
-overlayfs:/overlay  9.7G  9.1M  9.2G   0% /
-```
-
-✅ This indicates the system successfully uses `/dev/mmcblk0p3` as overlay.
-Installed software, configurations, and cache are all written to the 10G partition.
-
----
-
-## ⚙️ Phase 7: Optional Optimization
-
-### (1) Disable journaling to reduce TF card writes:
-
-```bash
-tune2fs -O ^has_journal /dev/mmcblk0p3
-e2fsck -f /dev/mmcblk0p3
-```
-
-### (2) Future expansion for more space:
-
-If the TF card still has remaining free space, you can create `/dev/mmcblk0p4` again in cfdisk and mount it to `/mnt/data` or `/opt`.
-
----
-
-## 🧱 Phase 8: Verify Software Installation Location
-
-```bash
-opkg update
-opkg install htop
-df -h
-```
-
-You will see the usage of `/` (overlay) increase, indicating that software is indeed installed into `/dev/mmcblk0p3`.
-
----
-
-## ✅ Summary
-
-> Create 10G partition via cfdisk → Format with mkfs.ext4 → Set `/overlay` in fstab → Reboot.
-> System root directory automatically switches to 10G overlayfs.
-> ImmortalWrt expansion successful, space persistently writable, install software freely 🚀.
-
----
+- [存储扩容与分区指南](./Storage_Expansion_Guide.md)

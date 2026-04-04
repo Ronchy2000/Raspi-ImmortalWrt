@@ -83,7 +83,8 @@
   - 快速参考：[系统监控与维护](#系统监控与维护)
 
 5. 软件空间扩容
-  - 扩容Overlay空间：[docs/ExtendOverlaySize.md](docs/ExtendOverlaySize.md)
+  - 先判断系统类型，再选路线：[docs/Storage_Expansion_Guide.md](docs/Storage_Expansion_Guide.md)
+  - 仅适用于 `squashfs + overlay` 的进阶方案：[docs/ExtendOverlaySize.md](docs/ExtendOverlaySize.md)
 
 6. Openclash科学上网设置
   - 科学上网插件配置：[docs/Openclash_Config.md](docs/Openclash_Config.md)
