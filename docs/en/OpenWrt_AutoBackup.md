@@ -36,9 +36,23 @@
 ## Setup
 
 ### 1. Install Dependencies
+First identify your OpenWrt branch:
+
+- `OpenWrt 24.10 and earlier stable releases`: use `opkg`
+- `OpenWrt 25.12 and newer`: use `apk`
+
+For `24.10 and earlier`:
+
 ```bash
 opkg update
 opkg install git openssh-client openssh-keygen ca-bundle ca-certificates
+```
+
+For `25.12 and newer`:
+
+```bash
+apk update
+apk add git openssh-client openssh-keygen ca-bundle ca-certificates
 ```
 
 ### 2. Generate SSH Key

@@ -82,7 +82,7 @@ If you have backup and restore needs:
   - Advanced path for `squashfs + overlay` only: [docs/ExtendOverlaySize.md](docs/ExtendOverlaySize.md)
 
 5. OpenClash Network Access Settings
-  - Network Access Plugin Configuration: [docs/Openclash_Config.md](docs/Openclash_Config.md)
+  - Network Access Plugin Configuration (`opkg` / `apk` split covered): [docs/Openclash_Config.md](docs/Openclash_Config.md)
   - GitHub SSH Port 22 Troubleshooting: [docs/en/GitHub_SSH_22_Port_Blocking.md](docs/en/GitHub_SSH_22_Port_Blocking.md)
 
 ---
@@ -191,7 +191,12 @@ For specific dial-up configuration steps, see: [docs/PPPoE_Connection.md](docs/P
 
 > Install cargo luci theme to enhance interface aesthetics (refer to video at 33:12) https://www.youtube.com/watch?v=JfSJmPFiL_s&t=1992s
 
-If you know how to install it yourself, follow these steps directly:
+If you already know the LuCI package page, you can install themes and plugins there directly.
+
+Keep in mind that package management is now split by OpenWrt version:
+
+- `24.10 and earlier stable releases`: `opkg`
+- `25.12 and newer`: `apk`
 
 `System--Software Packages--Update Lists--No errors--Install luci-theme-argon--Install luci-i18n-ttyd-zh-cn`
 
@@ -204,54 +209,32 @@ Plugin Installation:
 
 Plugin location: In the "Services" tab on the sidebar.
 
-Command-line installation (ARM64 & x86-64 universal):
-```bash
-# Install iStore App Store
-wget -qO imm.sh https://cafe.cpolar.cn/wkdaily/zero3/raw/branch/main/zero3/imm.sh && chmod +x imm.sh && ./imm.sh
-
-# Install quickstart wizard and homepage
-is-opkg install luci-i18n-quickstart-zh-cn
-```
+Before using command-line or third-party installer scripts, confirm whether your system uses `opkg` or `apk`. Do not blindly reuse older commands.
 
 > Once plugins are installed, complete the final step of configuring the proxy tool, and you'll be able to achieve `network access` on any terminal device in your home!
 
 ## Network Access Configuration
-> Honestly, isn't this what all the software router tinkering has been for?
-> When you successfully configure network access and see all your home devices freely and quickly accessing the internet, that moment of satisfaction is absolutely the meaning of all this effort.
+The OpenClash guide has been restructured into a version-aware manual covering both:
 
-> Some say network access is just a tool - why not just install proxy tools on each device? But for tinkerers, achieving elegant network access is absolutely worth the effort. From node selection, DNS splitting to transparent proxy, every step has its secrets. Configure it well, and your network flows like silk; configure it poorly, and you're stuck in an endless loop of "can't connect" and "won't open".
+- `OpenWrt 24.10 and earlier stable releases`: `opkg`
+- `OpenWrt 25.12 and newer`: `apk`
 
-> Next, let's configure OpenClash and see how to make OpenWrt's software router truly "fly".
+The repository currently provides four YAML variants:
 
-**1. Install Network Access Plugins such as OpenClash**
+- [config.yaml](config.yaml): base template
+- [config_linkedin.yaml](config_linkedin.yaml): LinkedIn fix
+- [config_linkedin_auto.yaml](config_linkedin_auto.yaml): recommended smart-switch version
+- [config_linkedin_auto_ssh22_redir.yaml](config_linkedin_auto_ssh22_redir.yaml): GitHub SSH 22 compatibility variant
 
-Download and add according to personal preference (cannot use multiple simultaneously!)
-- OpenClash (Highly recommended, most widely used, this tutorial is based on it)
-- passWall
-- etc.
+Read the updated guide here: [docs/Openclash_Config.md](docs/Openclash_Config.md)
 
-> After installing the OpenClash plugin, watch this video first and complete the basic configuration step by step:
-Link: https://www.youtube.com/watch?v=1U9xkpexHOE
+The new guide explains:
 
-Unlike in the video, the `config.yaml` in the video has two issues in actual use: first, `LinkedIn` cannot be accessed normally, and second, `academic websites` like IEEE cannot correctly identify academic network IPs, requiring frequent network switching to download papers. The configuration provided in this article adjusts rules and DNS splitting to solve these issues and provides reproducible examples and verification steps.
-
-Please use [config_linkedin.yaml](config.yaml) as the configuration file.
-
-Configuration notes: Academic literature repositories and Steam downloads use direct connection, LinkedIn uses overseas DNS to prevent redirection to domestic sites. For more features, please submit a PR!
-
-<div align="center">
-  <img src="figures/Direct_rules.png" width="80%" />
-</div>
-
-**2. Advanced Usage**
-
-Custom rule additions:
-
-- [OpenClash Maintenance Guide](https://blog.dreamtobe.cn/openclash_maintain/)
-- [Custom OpenClash Rules](https://github.com/Aethersailor/Custom_OpenClash_Rules) Configuration successful!
-- [GitHub Access Optimization](https://github.com/521xueweihan/GitHub520)
-    - Add GitHub-related domains to direct connection rules
-    - Solve GitHub access speed and image display issues by modifying local hosts file
+- how to identify whether your system should use `opkg` or `apk`
+- how to choose the right YAML
+- why `config_linkedin_auto.yaml` is the best default for most users
+- why many academic sites should stay on direct routing
+- where to add your own direct or proxy rules
 
 # References
 [https://www.youtube.com/watch?v=s84CWgKus4U&t=105s](https://www.youtube.com/watch?v=s84CWgKus4U&t=105s)

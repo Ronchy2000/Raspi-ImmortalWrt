@@ -37,6 +37,13 @@ Flash the Raspberry Pi related version firmware. Please see OpenWrt [Firmware Se
 After flashing the firmware, please configure the network first, i.e., OpenWrt can update software packages, and install the following content:
 > Install cargo luci theme to enhance interface aesthetics (refer to video at 33:12) https://www.youtube.com/watch?v=JfSJmPFiL_s&t=1992s
 
+First identify your OpenWrt branch:
+
+- `OpenWrt 24.10 and earlier stable releases`: use `opkg`
+- `OpenWrt 25.12 and newer`: use `apk`
+
+If your goal is simply to restore a working system, the LuCI package page is the safest default path for reinstalling the theme and the required plugins before importing the backup.
+
 If you know how to install it yourself, follow these steps directly:
 
 `System--Software Packages--Update Lists--No errors--Install luci-theme-argon--Install luci-i18n-ttyd-zh-cn`
@@ -49,15 +56,19 @@ Plugin Installation:
 
 Plugin location: In the "Services" tab on the sidebar.
 
-If you prefer command line, run:
+If you prefer the command line, use the package manager that matches your system:
 
 ```bash
-# Install iStore (ARM64 & x86-64 universal)
-wget -qO imm.sh https://cafe.cpolar.cn/wkdaily/zero3/raw/branch/main/zero3/imm.sh && chmod +x imm.sh && ./imm.sh
+# OpenWrt 24.10 and earlier stable releases
+opkg update
+opkg install luci-theme-argon luci-app-openclash luci-i18n-passwall-zh-cn luci-i18n-homeproxy-zh-cn luci-i18n-quickstart-zh-cn
 
-# Install quickstart wizard and homepage (ARM64 & x86-64 universal)
-is-opkg install luci-i18n-quickstart-zh-cn
+# OpenWrt 25.12 and newer
+apk update
+apk add luci-theme-argon luci-app-openclash luci-i18n-passwall-zh-cn luci-i18n-homeproxy-zh-cn luci-i18n-quickstart-zh-cn
 ```
+
+Third-party installer wrappers such as `imm.sh` or `is-opkg` may not be updated at the same speed as the `opkg -> apk` transition. On `25.12+`, verify compatibility first instead of treating them as the default path.
 
 Important: If you do not perform the <strong>above operations</strong> and directly upload the backup from `Backup & Restore` settings, it will report errors! And it's difficult to resolve!
 
@@ -74,23 +85,25 @@ If you are a command-line user, please follow me.
 
 1. Install SFTP service for OpenWrt:
 ```bash
-opkg update 
+# OpenWrt 24.10 and earlier stable releases
+opkg update
 opkg install openssh-sftp-server
+
+# OpenWrt 25.12 and newer
+apk update
+apk add openssh-sftp-server
 ```
 2. After installing `luci-theme-argon`, go to System--Backup & Upgrade--Upload Backup.
 3. Install plugins (recommended before restore):
 ```bash
-is-opkg install luci-app-openclash
-is-opkg install luci-i18n-passwall-zh-cn
-is-opkg install luci-i18n-homeproxy-zh-cn
-is-opkg install luci-i18n-quickstart-zh-cn
+# OpenWrt 24.10 and earlier stable releases
+opkg install luci-app-openclash luci-i18n-passwall-zh-cn luci-i18n-homeproxy-zh-cn luci-i18n-quickstart-zh-cn
 
-# Install iStore (ARM64 & x86-64 universal)
-wget -qO imm.sh https://cafe.cpolar.cn/wkdaily/zero3/raw/branch/main/zero3/imm.sh && chmod +x imm.sh && ./imm.sh
+# OpenWrt 25.12 and newer
+apk add luci-app-openclash luci-i18n-passwall-zh-cn luci-i18n-homeproxy-zh-cn luci-i18n-quickstart-zh-cn
 ```
 4. Restore OpenClash configuration files (after testing, this is not necessary, OpenClash-related backup is already included in the system backup)
 
 Success!
 
 ---
-

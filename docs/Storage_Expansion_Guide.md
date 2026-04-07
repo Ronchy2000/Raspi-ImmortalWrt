@@ -164,9 +164,23 @@ uci commit fstab
 
 ### 安装扩容工具
 
+先判断系统版本：
+
+- `OpenWrt 24.10 及更早稳定版`：使用 `opkg`
+- `OpenWrt 25.12 及更新版本 / 新分支`：使用 `apk`
+
+`24.10 及更早稳定版`：
+
 ```bash
 opkg update
 opkg install parted losetup resize2fs blkid e2fsprogs
+```
+
+`25.12 及更新版本 / 新分支`：
+
+```bash
+apk update
+apk add parted losetup resize2fs blkid e2fsprogs
 ```
 
 ### 查看当前分区
@@ -307,9 +321,23 @@ parted -l -s
 
 ### 安装工具
 
+先判断系统版本：
+
+- `OpenWrt 24.10 及更早稳定版`：使用 `opkg`
+- `OpenWrt 25.12 及更新版本 / 新分支`：使用 `apk`
+
+`24.10 及更早稳定版`：
+
 ```bash
 opkg update
 opkg install block-mount kmod-fs-ext4 e2fsprogs fdisk cfdisk
+```
+
+`25.12 及更新版本 / 新分支`：
+
+```bash
+apk update
+apk add block-mount kmod-fs-ext4 e2fsprogs fdisk cfdisk
 ```
 
 ### 新建分区

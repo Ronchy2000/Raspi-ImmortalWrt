@@ -271,6 +271,11 @@ free -h
 
 ### Monthly
 
+First identify your OpenWrt branch:
+
+- `OpenWrt 24.10 and earlier stable releases`: use `opkg`
+- `OpenWrt 25.12 and newer`: use `apk`
+
 ```bash
 # Check recent restore archives
 ls -lh /root/*.tar.gz 2>/dev/null
@@ -280,9 +285,13 @@ ls -lh /root/*.tar.gz 2>/dev/null
 > /root/luci_watchdog.log
 > /root/smart_backup.log
 
-# Check package updates
+# Check package updates (24.10 and earlier)
 opkg update
 opkg list-upgradable
+
+# Check package updates (25.12 and newer)
+apk update
+apk list --upgradeable
 
 # Check uptime
 uptime

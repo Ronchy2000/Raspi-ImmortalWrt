@@ -122,12 +122,12 @@ const COPY = {
   zh: {
     eyebrow: "Raspberry Pi + ImmortalWrt",
     title: "树莓派 ImmortalWrt 全流程文档站",
-    lead: "从固件烧录、网络接入到 OpenClash 与备份恢复，按真实使用场景拆分，降低新手踩坑概率。",
+    lead: "从固件烧录、网络接入到 OpenClash、备份恢复与存储扩容，按真实使用场景拆分，并明确区分 `opkg` 与 `apk` 路线。",
     primary: "查看中文总览",
     secondary: "Read in English",
     tag1: "浏览器语言自动识别",
     tag2: "文档与前端同步更新",
-    tag3: "新手友好，步骤清晰",
+    tag3: "先判断版本，再执行命令",
     points: [
       "覆盖从刷机、联网到插件配置的完整路径。",
       "提供智能备份、恢复、维护与排错方案。",
@@ -136,6 +136,15 @@ const COPY = {
     quickTitle: "快速入口",
     latestTitle: "最近更新",
     latestEmpty: "暂无更新日志",
+    splitTitle: "先判断你的系统分支",
+    splitDesc: "现在很多教程失效，不是步骤错了，而是包管理器已经变了。仓库里的新版文档都会先分清 `24.10-` 和 `25.12+`，再给出对应命令。",
+    splitStableTitle: "24.10 及更早稳定版",
+    splitStableDesc: "继续使用 `opkg`。旧教程大多还是按这条路线写的。",
+    splitNextTitle: "25.12 及更新版本",
+    splitNextDesc: "改用 `apk`。不要再直接照抄旧的 `opkg install`。",
+    splitAction: "查看 OpenClash 新手册",
+    pathsTitle: "推荐阅读路径",
+    pathsDesc: "按你当前想解决的问题进入，不用从头到尾硬读一遍。",
     metricGuides: "配置文档",
     metricGuidesDesc: "覆盖烧录、网络、维护与扩容",
     metricScripts: "自动化脚本",
@@ -158,12 +167,12 @@ const COPY = {
   en: {
     eyebrow: "Raspberry Pi + ImmortalWrt",
     title: "Raspberry Pi ImmortalWrt Docs Hub",
-    lead: "From firmware flashing and network onboarding to OpenClash and backup/restore, organized around real deployment scenarios.",
+    lead: "From firmware flashing and network onboarding to OpenClash, backup/restore, and storage expansion, now rewritten around the `opkg` / `apk` split.",
     primary: "Read English Overview",
     secondary: "查看中文",
     tag1: "Browser language auto-detection",
     tag2: "Frontend and Markdown stay in sync",
-    tag3: "Beginner-friendly and step-by-step",
+    tag3: "Version first, commands second",
     points: [
       "Covers the full path from flashing to network and plugin setup.",
       "Includes backup, restore, maintenance, and troubleshooting workflows.",
@@ -172,6 +181,15 @@ const COPY = {
     quickTitle: "Quick Access",
     latestTitle: "Latest Updates",
     latestEmpty: "No changelog entries yet",
+    splitTitle: "Identify your OpenWrt branch first",
+    splitDesc: "Many older tutorials break not because the feature changed, but because the package manager changed. The updated docs now split the workflow before showing commands.",
+    splitStableTitle: "24.10 and earlier stable releases",
+    splitStableDesc: "Still use `opkg`. Most older tutorials assume this path.",
+    splitNextTitle: "25.12 and newer",
+    splitNextDesc: "Use `apk`. Do not keep copying old `opkg install` commands.",
+    splitAction: "Open the new OpenClash guide",
+    pathsTitle: "Recommended reading paths",
+    pathsDesc: "Jump straight to the problem you are solving instead of reading everything linearly.",
     metricGuides: "Guides",
     metricGuidesDesc: "Flashing, network, maintenance, and expansion",
     metricScripts: "Scripts",
@@ -192,6 +210,56 @@ const COPY = {
     count: "docs"
   }
 } as const;
+
+const FEATURED_PATHS: Record<
+  DocLocale,
+  Array<{ key: string; label: string; description: string }>
+> = {
+  zh: [
+    {
+      key: "README",
+      label: "第一次搭建",
+      description: "从固件、连接方式到最基础的联网路径。"
+    },
+    {
+      key: "docs/Openclash_Config",
+      label: "代理与分流",
+      description: "新版 OpenClash 教程，已区分 `opkg` / `apk`。"
+    },
+    {
+      key: "docs/OpenWrt_Backup_Resotre",
+      label: "备份与恢复",
+      description: "换卡、迁移系统、恢复插件前先看这篇。"
+    },
+    {
+      key: "docs/Storage_Expansion_Guide",
+      label: "存储与扩容",
+      description: "判断 `ext4`、`squashfs`、数据分区和 extroot。"
+    }
+  ],
+  en: [
+    {
+      key: "README",
+      label: "First-Time Setup",
+      description: "Start from firmware, connection mode, and basic network onboarding."
+    },
+    {
+      key: "docs/Openclash_Config",
+      label: "Proxy and Routing",
+      description: "Updated OpenClash guide with `opkg` / `apk` split."
+    },
+    {
+      key: "docs/OpenWrt_Backup_Resotre",
+      label: "Backup and Restore",
+      description: "Read this before migration, card swap, or recovery."
+    },
+    {
+      key: "docs/Storage_Expansion_Guide",
+      label: "Storage and Expansion",
+      description: "Choose between `ext4`, `squashfs`, data partition, and extroot."
+    }
+  ]
+};
 
 function sortChangelogs(list: DocMeta[]): DocMeta[] {
   return [...list].sort((a, b) => {
@@ -243,6 +311,13 @@ export default async function HomePage({ locale }: { locale: DocLocale }) {
     { label: text.metricScripts, value: scriptCount, description: text.metricScriptsDesc },
     { label: text.metricLogs, value: changelogCount, description: text.metricLogsDesc }
   ];
+  const featuredPaths = FEATURED_PATHS[locale]
+    .map((item) => {
+      const doc = docs.find((entry) => entry.key === item.key);
+      if (!doc) return null;
+      return { ...item, doc };
+    })
+    .filter((item): item is NonNullable<typeof item> => Boolean(item));
 
   const otherLocale = locale === "zh" ? "en" : "zh";
 
@@ -322,6 +397,52 @@ export default async function HomePage({ locale }: { locale: DocLocale }) {
             <small>{item.description}</small>
           </article>
         ))}
+      </section>
+
+      <section className="split-panel">
+        <div className="split-copy">
+          <p className="section-kicker">OpenWrt Version Split</p>
+          <h2>{text.splitTitle}</h2>
+          <p>{text.splitDesc}</p>
+          <Link href={docHrefFromKey(openclashKey, locale)} className="primary-btn split-btn">
+            {text.splitAction}
+          </Link>
+        </div>
+
+        <div className="split-grid">
+          <article className="split-card stable">
+            <span>Stable</span>
+            <h3>{text.splitStableTitle}</h3>
+            <p>{text.splitStableDesc}</p>
+            <strong>opkg</strong>
+          </article>
+          <article className="split-card next">
+            <span>Current</span>
+            <h3>{text.splitNextTitle}</h3>
+            <p>{text.splitNextDesc}</p>
+            <strong>apk</strong>
+          </article>
+        </div>
+      </section>
+
+      <section className="path-section">
+        <div className="section-head">
+          <h2>{text.pathsTitle}</h2>
+          <p>{text.pathsDesc}</p>
+        </div>
+
+        <div className="path-grid">
+          {featuredPaths.map((item, index) => (
+            <article key={item.key} className="path-card" style={{ animationDelay: `${index * 70}ms` }}>
+              <p>{item.label}</p>
+              <h3>
+                <Link href={docHrefFromKey(item.doc.key, locale)}>{item.doc.title}</Link>
+              </h3>
+              <span>{item.description}</span>
+              <small>{item.doc.repoPath}</small>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="firmware-panel">

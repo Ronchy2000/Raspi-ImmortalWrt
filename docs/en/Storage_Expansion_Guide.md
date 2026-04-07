@@ -164,9 +164,23 @@ Why:
 
 ### Install the required tools
 
+First identify your OpenWrt branch:
+
+- `OpenWrt 24.10 and earlier stable releases`: use `opkg`
+- `OpenWrt 25.12 and newer`: use `apk`
+
+For `24.10 and earlier`:
+
 ```bash
 opkg update
 opkg install parted losetup resize2fs blkid e2fsprogs
+```
+
+For `25.12 and newer`:
+
+```bash
+apk update
+apk add parted losetup resize2fs blkid e2fsprogs
 ```
 
 ### Inspect the current partition layout
@@ -307,9 +321,23 @@ stop there. Do not format the partition until you confirm whether it is already 
 
 ### Install the required tools
 
+First identify your OpenWrt branch:
+
+- `OpenWrt 24.10 and earlier stable releases`: use `opkg`
+- `OpenWrt 25.12 and newer`: use `apk`
+
+For `24.10 and earlier`:
+
 ```bash
 opkg update
 opkg install block-mount kmod-fs-ext4 e2fsprogs fdisk cfdisk
+```
+
+For `25.12 and newer`:
+
+```bash
+apk update
+apk add block-mount kmod-fs-ext4 e2fsprogs fdisk cfdisk
 ```
 
 ### Create the partition

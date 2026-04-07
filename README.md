@@ -87,7 +87,7 @@
   - 仅适用于 `squashfs + overlay` 的进阶方案：[docs/ExtendOverlaySize.md](docs/ExtendOverlaySize.md)
 
 6. Openclash科学上网设置
-  - 科学上网插件配置：[docs/Openclash_Config.md](docs/Openclash_Config.md)
+  - 科学上网插件配置（兼容 `opkg` / `apk` 双路线）：[docs/Openclash_Config.md](docs/Openclash_Config.md)
   - GitHub SSH 22 端口故障排查：[docs/GitHub_SSH_22_Port_Blocking.md](docs/GitHub_SSH_22_Port_Blocking.md)
 
 ---
@@ -209,7 +209,12 @@ cat /etc/openwrt_release; uname -m
 
 > 安装 cargo luci 主题，提升界面美观度（参考视频 33:12）https://www.youtube.com/watch?v=JfSJmPFiL_s&t=1992s
 
-如果您自己会安装，请直接按照以下步骤操作：
+如果您自己会安装，可以直接在“软件包”页面搜索主题与插件。
+
+需要注意的是，OpenWrt 新旧版本的软件包管理方式已经分流：
+
+- `24.10 及更早稳定版`：`opkg`
+- `25.12 及更新版本 / 新分支`：`apk`
 
 `系统--软件包--更新列表--没有报错--安装luci-theme-argon--安装luci-i18n-ttyd-zh-cn`
 
@@ -222,52 +227,31 @@ cat /etc/openwrt_release; uname -m
 
 插件位置在：侧边栏的“服务”标签页。
 
-命令行安装（ARM64 & x86-64 通用）：
-```bash
-# 安装 iStore 商店
-wget -qO imm.sh https://cafe.cpolar.cn/wkdaily/zero3/raw/branch/main/zero3/imm.sh && chmod +x imm.sh && ./imm.sh
-
-# 安装 quickstart 网络向导和首页
-is-opkg install luci-i18n-quickstart-zh-cn
-```
+命令行或第三方脚本安装前，请先确认当前系统所使用的是 `opkg` 还是 `apk`，不要直接照抄旧命令。
 
 > 插件安装好了，接下来只要完成最后一步，配置代理工具，之后您就可以在全屋的任意终端设备上实现`科 学 上 网`了！
 ## 科学上网配置
-> 说实话，折腾软路由到现在，不就是为了这一刻嘛？
-> 当你真正配置好科学上网，看着全屋设备都能自由、快速地访问外网，那一瞬间的畅快，绝对是所有折腾的意义所在。
+OpenClash 教程已经重写为“按系统版本分流”的手册，适用于：
 
-> 有人说，科学上网只是个工具，我每个设备都安装上代理工具不就行了？但对折腾党来说，要做到优雅的科学上网太值得去花费精力了。从节点选择、DNS分流到透明代理，每一步都暗藏玄机。配得好，你的网络能像丝一样顺滑；配不好，整天都在“连不上”“打不开”的循环里。
+- `OpenWrt 24.10 及更早稳定版`：`opkg`
+- `OpenWrt 25.12 及更新版本 / 新分支`：`apk`
 
-> 接下来，就让我们配置openclash，看看怎么让 OpenWrt 的软路由真正“飞”起来。
+同时，仓库内提供了 4 份配置文件：
 
-1. 安装科学上网插件Openclash等
-根据个人喜好下载添加即可（不能同时使用！）
-- Openclash （强烈推荐，用的人最多，本文教程也是基于此）
-- passWall
-- 略
+- [config.yaml](config.yaml)：基础版
+- [config_linkedin.yaml](config_linkedin.yaml)：LinkedIn 修复版
+- [config_linkedin_auto.yaml](config_linkedin_auto.yaml)：推荐版，自动切换更省心
+- [config_linkedin_auto_ssh22_redir.yaml](config_linkedin_auto_ssh22_redir.yaml)：GitHub SSH 22 兼容版
 
->安装好 OpenClash 插件后，先看一遍这段视频，按步骤完成基础配置即可：
-链接：https://www.youtube.com/watch?v=1U9xkpexHOE
+推荐直接阅读新版教程：[docs/Openclash_Config.md](docs/Openclash_Config.md)
 
-与视频不同的是，视频里的 `config.yaml` 在实际使用中会出现两个问题：一是 `LinkedIn`无法正常访问，二是像 IEEE 这类`学术网站`无法正确识别学术网络的 IP，导致需要频繁切换网络才能下载文献。本文提供的配置方案针对规则与 DNS 分流做了调整，解决了上述问题，并给出可复现的示例与验证步骤。
+新版教程包含：
 
-请使用[config_linkedin.yaml](config.yaml)作为配置文件。
-
-本配置说明：文献库，steam下载走直连，linkedin利用海外DNS访问，防止跳转回国，更多功能请提PR！
-
-<div align="center">
-  <img src="figures/Direct_rules.png" width="80%" />
-</div>
-
-
-2. 高级使用方法
-自定义规则添加：
-
-- [OpenClash 维护指南.](https://blog.dreamtobe.cn/openclash_maintain/)
-- [自定义 OpenClash 规则.](https://github.com/Aethersailor/Custom_OpenClash_Rules) 配置成功！
-- [GitHub 访问优化.](https://github.com/521xueweihan/GitHub520)
-    - 添加 GitHub 相关域名到直连规则.
-    - 通过修改本地 hosts 文件解决 GitHub 访问速度慢和图片显示不出来的问题.
+- 如何判断自己该走 `opkg` 还是 `apk`
+- 如何选择适合自己的 YAML
+- 为什么 `config_linkedin_auto.yaml` 更适合日常使用
+- 学术网站为什么很多要走直连
+- 自定义直连/代理规则该加在哪里
 
 # 参考资料
 [https://www.youtube.com/watch?v=s84CWgKus4U&t=105s](https://www.youtube.com/watch?v=s84CWgKus4U&t=105s)

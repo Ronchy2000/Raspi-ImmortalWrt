@@ -20,6 +20,14 @@ function decodeSegments(slug: string[]): string {
   return slug.map((segment) => decodeURIComponent(segment)).join("/");
 }
 
+function formatDate(mtimeMs: number): string {
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  }).format(new Date(mtimeMs));
+}
+
 export async function generateStaticParams() {
   const docs = await getAllDocs("en");
   return docs.map((doc) => ({
@@ -57,22 +65,36 @@ export default async function EnDocPage({ params }: DocPageProps) {
         <span>{doc.repoPath}</span>
       </nav>
 
-      <div className="doc-actions">
-        <Link href={homeHref("en")} className="ghost-btn">
-          English Home
-        </Link>
-        {hasChinese && (
-          <Link href={docHrefFromKey(key, "zh")} className="ghost-btn">
-            切换到中文
-          </Link>
-        )}
-      </div>
+      <header className="doc-hero">
+        <div className="doc-hero-copy">
+          <p className="doc-kicker">Repo Document</p>
+          <h1>{doc.title}</h1>
+          <p className="doc-summary">{doc.summary}</p>
+          <div className="doc-meta">
+            <span>{doc.repoPath}</span>
+            <span>Updated {formatDate(doc.mtimeMs)}</span>
+          </div>
+        </div>
 
-      <MarkdownView
-        content={doc.content}
-        resolveHref={resolvers.resolveHref}
-        resolveSrc={resolvers.resolveSrc}
-      />
+        <div className="doc-actions">
+          <Link href={homeHref("en")} className="ghost-btn">
+            English Home
+          </Link>
+          {hasChinese && (
+            <Link href={docHrefFromKey(key, "zh")} className="ghost-btn">
+              切换到中文
+            </Link>
+          )}
+        </div>
+      </header>
+
+      <div className="doc-reader">
+        <MarkdownView
+          content={doc.content}
+          resolveHref={resolvers.resolveHref}
+          resolveSrc={resolvers.resolveSrc}
+        />
+      </div>
     </section>
   );
 }

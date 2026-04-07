@@ -72,9 +72,23 @@ sysupgrade -b /tmp/pre-extroot-$(date +%F).tar.gz
 
 ### 2. Install the required tools
 
+First identify your OpenWrt branch:
+
+- `OpenWrt 24.10 and earlier stable releases`: use `opkg`
+- `OpenWrt 25.12 and newer`: use `apk`
+
+For `24.10 and earlier`:
+
 ```bash
 opkg update
 opkg install block-mount kmod-fs-ext4 e2fsprogs fdisk cfdisk rsync
+```
+
+For `25.12 and newer`:
+
+```bash
+apk update
+apk add block-mount kmod-fs-ext4 e2fsprogs fdisk cfdisk rsync
 ```
 
 If `rsync` is unavailable in your feed, use `cp -a` later instead.

@@ -318,6 +318,11 @@ free -h
 
 ### 每月维护
 
+先判断系统版本：
+
+- `OpenWrt 24.10 及更早稳定版`：使用 `opkg`
+- `OpenWrt 25.12 及更新版本 / 新分支`：使用 `apk`
+
 ```bash
 # 1. 检查备份仓库与最近备份
 ls -lh /root/*.tar.gz 2>/dev/null
@@ -327,11 +332,15 @@ ls -lh /root/*.tar.gz 2>/dev/null
 > /root/luci_watchdog.log
 > /root/smart_backup.log
 
-# 3. 检查系统更新
+# 3. 检查系统更新（24.10 及更早）
 opkg update
 opkg list-upgradable
 
-# 4. 查看系统运行时间
+# 4. 检查系统更新（25.12 及更新版本）
+apk update
+apk list --upgradeable
+
+# 5. 查看系统运行时间
 uptime
 ```
 
