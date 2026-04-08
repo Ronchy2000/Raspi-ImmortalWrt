@@ -207,17 +207,35 @@ wget -U "" -O expand-root.sh "https://openwrt.org/_export/code/docs/guide-user/a
 sh /etc/uci-defaults/70-rootpt-resize
 ```
 
-This normally handles:
+This normally happens in stages:
 
-- expanding the root partition
-- resizing the ext4 filesystem
-- rebooting automatically
+- `70-rootpt-resize`: expand the root partition first, then trigger an automatic reboot
+- `80-rootfs-resize`: after the system comes back, resize the ext4 filesystem, and it may reboot once more if needed
 
 Before you run it, make sure:
 
 - power is stable
 - you are not gambling on an unattended remote site
 - you already have a backup
+
+There are a few details here that matter a lot:
+
+1. If the SSH session drops soon after `sh /etc/uci-defaults/70-rootpt-resize`, and the router reboots automatically, that is usually normal.
+2. Do not assume failure just because the first `df -h` after reconnect still shows a few hundred MB. Online expansion is staged, and partition expansion does not always finish at the exact same moment as filesystem expansion.
+3. The safer way to judge the result is: wait for the reboot to finish, log in again, check `parted -l -s` first, and then check `df -h`. If `p2` has already grown to the end of the card but `/dev/root` is still small, run:
+
+```bash
+sh /etc/uci-defaults/80-rootfs-resize
+reboot
+```
+
+4. If `70-rootpt-resize` does not trigger a reboot and `parted -l -s` still shows the old partition size, do not guess that it "probably worked". Check dependencies, marker files, and the actual partition state first:
+
+```bash
+type parted losetup resize2fs blkid
+parted -l -s
+ls -l /etc/uci-defaults/70-rootpt-resize /etc/uci-defaults/80-rootfs-resize /etc/rootpt-resize /etc/rootfs-resize 2>/dev/null
+```
 
 5. **Verify the result before moving on.**
 
@@ -228,6 +246,12 @@ mount
 df -h
 block info
 ```
+
+If you used the online method, read the result in this order as well:
+
+1. `parted -l -s`: confirm that `mmcblk0p2` has grown close to the end of the card
+2. `df -h`: confirm that `/dev/root` has actually become larger
+3. `mount` and `block info`: confirm that the root partition is still mounted correctly as `ext4`
 
 Success usually looks like:
 

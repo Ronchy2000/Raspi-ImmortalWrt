@@ -209,17 +209,35 @@ wget -U "" -O expand-root.sh "https://openwrt.org/_export/code/docs/guide-user/a
 sh /etc/uci-defaults/70-rootpt-resize
 ```
 
-这个流程通常会自动完成：
+这个流程通常会分阶段完成：
 
-- 扩展根分区
-- 扩展 ext4 文件系统
-- 自动重启
+- `70-rootpt-resize`：先扩展根分区，并触发自动重启
+- `80-rootfs-resize`：系统起来后再扩展 ext4 文件系统，必要时还会再重启一次
 
 执行前请确认：
 
 - 供电稳定
 - 不在远程无人值守的环境中冒险操作
 - 已经做好备份
+
+这里有几个非常关键的判断点，必须提前知道：
+
+1. 如果 `sh /etc/uci-defaults/70-rootpt-resize` 执行后，SSH 会话很快断开，随后路由器自动重启，这通常是正常现象。
+2. 不要在第一次回到系统后，马上看到 `df -h` 还是几百 MB，就立刻判断失败。在线扩容是分阶段的，分区扩容和文件系统扩容不一定在同一个瞬间完成。
+3. 最稳妥的做法是：等待系统完成重启后，再重新登录，先看 `parted -l -s`，再看 `df -h`。如果 `p2` 已经扩到卡尾，但 `/dev/root` 还没变大，再手动执行一次：
+
+```bash
+sh /etc/uci-defaults/80-rootfs-resize
+reboot
+```
+
+4. 如果执行 `70-rootpt-resize` 后既没有自动重启，`parted -l -s` 里也看不到 `p2` 变大，就不要继续猜测“是不是已经成功”。先排查依赖、标记文件和分区状态：
+
+```bash
+type parted losetup resize2fs blkid
+parted -l -s
+ls -l /etc/uci-defaults/70-rootpt-resize /etc/uci-defaults/80-rootfs-resize /etc/rootpt-resize /etc/rootfs-resize 2>/dev/null
+```
 
 5. **扩容完成后先验证，再继续后面的安装。**
 
@@ -230,6 +248,12 @@ mount
 df -h
 block info
 ```
+
+如果你是在线扩容，建议把下面这组顺序也一起看：
+
+1. `parted -l -s`：确认 `mmcblk0p2` 是否已经扩到卡尾附近
+2. `df -h`：确认 `/dev/root` 是否已经真正变大
+3. `mount` 和 `block info`：确认根分区仍然正常挂载为 `ext4`
 
 成功时通常会看到：
 

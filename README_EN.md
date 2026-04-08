@@ -4,7 +4,7 @@
 
 # <img src="figures/raspberry-pi-logo.png" width="32" height="32" style="vertical-align: middle;" /> Raspberry Pi OpenWrt Software Router Configuration Guide
 
-[![ImmortalWrt](https://img.shields.io/badge/ImmortalWrt-24.10.0-blue.svg)](https://immortalwrt.org/) [![Raspberry Pi](https://img.shields.io/badge/Device-Raspberry%20Pi%204-red.svg)](https://www.raspberrypi.org/) [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Status](https://img.shields.io/badge/Status-Maintenance-green.svg)]() [![Online Docs](https://img.shields.io/badge/Online%20Docs-Raspi%20ImmortalWrt%20Docs-0f766e?logo=vercel&logoColor=white)](https://raspi.ronchy2000.top/)
+[![Example System](https://img.shields.io/badge/Example%20System-24.10.3-2d75c9.svg)](https://immortalwrt.org/) [![Latest Stable](https://img.shields.io/badge/Latest%20Stable-24.10.5-0f766e.svg)](https://downloads.immortalwrt.org/releases/24.10.5/) [![Raspberry Pi](https://img.shields.io/badge/Device-Raspberry%20Pi%204-red.svg)](https://www.raspberrypi.org/) [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Status](https://img.shields.io/badge/Status-Maintenance-green.svg)](https://github.com/Ronchy2000/Raspi-ImmortalWrt) [![Online Docs](https://img.shields.io/badge/Online%20Docs-Raspi%20ImmortalWrt%20Docs-0f766e?logo=vercel&logoColor=white)](https://raspi.ronchy2000.top/)
 
 **Transform Your Raspberry Pi into a Smart Gateway**
 

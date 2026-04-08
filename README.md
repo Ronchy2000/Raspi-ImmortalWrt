@@ -4,7 +4,7 @@
 
 # <img src="figures/raspberry-pi-logo.png" width="32" height="32" style="vertical-align: middle;" /> 树莓派 OpenWrt 软路由配置指南
 
-[![ImmortalWrt](https://img.shields.io/badge/ImmortalWrt-24.10.3-blue.svg)](https://immortalwrt.org/) [![Raspberry Pi](https://img.shields.io/badge/Device-Raspberry%20Pi%204-red.svg)](https://www.raspberrypi.org/) [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) ![Status](https://img.shields.io/badge/状态-维护模式-green.svg) [![在线文档](https://img.shields.io/badge/在线文档-Raspi%20ImmortalWrt%20Docs-0f766e?logo=vercel&logoColor=white)](https://raspi.ronchy2000.top/)
+[![示例系统](https://img.shields.io/badge/%E7%A4%BA%E4%BE%8B%E7%B3%BB%E7%BB%9F-24.10.3-2d75c9.svg)](https://immortalwrt.org/) [![最新稳定版](https://img.shields.io/badge/%E6%9C%80%E6%96%B0%E7%A8%B3%E5%AE%9A%E7%89%88-24.10.5-0f766e.svg)](https://downloads.immortalwrt.org/releases/24.10.5/) [![Raspberry Pi](https://img.shields.io/badge/Device-Raspberry%20Pi%204-red.svg)](https://www.raspberrypi.org/) [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) ![Status](https://img.shields.io/badge/状态-维护模式-green.svg) [![在线文档](https://img.shields.io/badge/在线文档-Raspi%20ImmortalWrt%20Docs-0f766e?logo=vercel&logoColor=white)](https://raspi.ronchy2000.top/)
 
 **从零开始，打造属于你的全屋智能网关**
 

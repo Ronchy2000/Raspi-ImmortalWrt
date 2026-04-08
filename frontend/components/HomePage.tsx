@@ -58,8 +58,13 @@ const HERO_BADGES: Record<DocLocale, HeroBadge[]> = {
   zh: [
     {
       href: "https://immortalwrt.org/",
-      src: "https://img.shields.io/badge/ImmortalWrt-24.10.3-2d75c9.svg",
-      alt: "ImmortalWrt 24.10.3"
+      src: "https://img.shields.io/badge/%E7%A4%BA%E4%BE%8B%E7%B3%BB%E7%BB%9F-24.10.3-2d75c9.svg",
+      alt: "示例系统 24.10.3"
+    },
+    {
+      href: "https://downloads.immortalwrt.org/releases/24.10.5/",
+      src: "https://img.shields.io/badge/%E6%9C%80%E6%96%B0%E7%A8%B3%E5%AE%9A%E7%89%88-24.10.5-0f766e.svg",
+      alt: "最新稳定版 24.10.5"
     },
     {
       href: "https://www.raspberrypi.org/",
@@ -80,8 +85,13 @@ const HERO_BADGES: Record<DocLocale, HeroBadge[]> = {
   en: [
     {
       href: "https://immortalwrt.org/",
-      src: "https://img.shields.io/badge/ImmortalWrt-24.10.3-2d75c9.svg",
-      alt: "ImmortalWrt 24.10.3"
+      src: "https://img.shields.io/badge/Example%20System-24.10.3-2d75c9.svg",
+      alt: "Example System 24.10.3"
+    },
+    {
+      href: "https://downloads.immortalwrt.org/releases/24.10.5/",
+      src: "https://img.shields.io/badge/Latest%20Stable-24.10.5-0f766e.svg",
+      alt: "Latest Stable 24.10.5"
     },
     {
       href: "https://www.raspberrypi.org/",
@@ -399,8 +409,8 @@ export default async function HomePage({ locale }: { locale: DocLocale }) {
         ))}
       </section>
 
-      <section className="split-panel">
-        <div className="split-copy">
+      <section className="decision-panel">
+        <div className="decision-copy">
           <p className="section-kicker">OpenWrt Version Split</p>
           <h2>{text.splitTitle}</h2>
           <p>{text.splitDesc}</p>
@@ -409,20 +419,23 @@ export default async function HomePage({ locale }: { locale: DocLocale }) {
           </Link>
         </div>
 
-        <div className="split-grid">
-          <article className="split-card stable">
+        <article className="decision-card stable">
+          <div className="decision-meta">
             <span>Stable</span>
-            <h3>{text.splitStableTitle}</h3>
-            <p>{text.splitStableDesc}</p>
             <strong>opkg</strong>
-          </article>
-          <article className="split-card next">
+          </div>
+          <h3>{text.splitStableTitle}</h3>
+          <p>{text.splitStableDesc}</p>
+        </article>
+
+        <article className="decision-card next">
+          <div className="decision-meta">
             <span>Current</span>
-            <h3>{text.splitNextTitle}</h3>
-            <p>{text.splitNextDesc}</p>
             <strong>apk</strong>
-          </article>
-        </div>
+          </div>
+          <h3>{text.splitNextTitle}</h3>
+          <p>{text.splitNextDesc}</p>
+        </article>
       </section>
 
       <section className="path-section">
@@ -433,14 +446,17 @@ export default async function HomePage({ locale }: { locale: DocLocale }) {
 
         <div className="path-grid">
           {featuredPaths.map((item, index) => (
-            <article key={item.key} className="path-card" style={{ animationDelay: `${index * 70}ms` }}>
+            <Link
+              key={item.key}
+              href={docHrefFromKey(item.doc.key, locale)}
+              className="path-card"
+              style={{ animationDelay: `${index * 70}ms` }}
+            >
               <p>{item.label}</p>
-              <h3>
-                <Link href={docHrefFromKey(item.doc.key, locale)}>{item.doc.title}</Link>
-              </h3>
+              <h3>{item.doc.title}</h3>
               <span>{item.description}</span>
               <small>{item.doc.repoPath}</small>
-            </article>
+            </Link>
           ))}
         </div>
       </section>
@@ -478,16 +494,16 @@ export default async function HomePage({ locale }: { locale: DocLocale }) {
         <p>{text.tocDesc}</p>
       </div>
 
-      <div className="group-grid">
+      <div className="catalog-stack">
         {orderedGroups.map(([group, items], index) => {
           const meta = metaMap[group] ?? metaMap.other;
           return (
             <section
               key={group}
-              className={`group-card tone-${meta.tone}`}
+              className={`catalog-section tone-${meta.tone}`}
               style={{ animationDelay: `${index * 80}ms` }}
             >
-              <header className="group-header">
+              <header className="catalog-header">
                 <div>
                   <h3>{meta.label}</h3>
                   <p>{meta.description}</p>
@@ -497,14 +513,14 @@ export default async function HomePage({ locale }: { locale: DocLocale }) {
                 </span>
               </header>
 
-              <ul className="doc-list">
+              <ul className="catalog-doc-grid">
                 {items.map((doc) => (
                   <li key={doc.key} className="doc-item">
-                    <Link href={docHrefFromKey(doc.key, locale)} className="doc-link">
-                      {doc.title}
+                    <Link href={docHrefFromKey(doc.key, locale)} className="doc-card-link">
+                      <span className="doc-link">{doc.title}</span>
+                      <p>{doc.summary}</p>
+                      <small>{doc.repoPath}</small>
                     </Link>
-                    <p>{doc.summary}</p>
-                    <small>{doc.repoPath}</small>
                   </li>
                 ))}
               </ul>
