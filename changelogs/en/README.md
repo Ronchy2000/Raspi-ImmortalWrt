@@ -5,6 +5,8 @@ Scope includes: `docs/`, `scripts/`, and `frontend/`.
 
 ## Entries
 
+- [2026-04-08](./2026-04-08.md) - PPPoE guide rewrite, wireless-to-LAN guidance, and dial-up figure relocation/renaming
+- [2026-04-07](./2026-04-07.md) - OpenClash guide rewrite, opkg/apk dual-path updates, and frontend homepage/doc-page redesign
 - [2026-02-20](./2026-02-20.md) - SSH-22 general fix docs/config and OpenWrt_Backup route character fix (resolved EN/ZH switch 404)
 - [2026-02-18](./2026-02-18.md) - Frontend locale auto-detection, richer homepage content, and changelog EN routing fix
 - [2026-01-03](./2026-01-03.md) - Fixed smart backup change detection and improved OpenClash config tracking.
