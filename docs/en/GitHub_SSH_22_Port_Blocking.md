@@ -43,14 +43,16 @@ In this setup, SSH on port 22 was not reliably handled as expected in `TUN` mode
 
 ## 4. Working Fix
 
-### Switch OpenClash mode
+Follow these two actions in order:
+
+1. **Switch the OpenClash mode first.**
 
 Change from `TUN` to `redir-host` (or `Redir`):
 
 - `OpenClash -> Mode Settings`
 - Select `redir-host` (or `Redir`)
 
-### Add direct rule for port 22
+2. **Then add a direct rule for port 22.**
 
 ```yaml
 - DST-PORT,22,DIRECT

@@ -197,7 +197,9 @@ The ideal result is:
 
 ## Common checks
 
-### 1. WiFi disappears after boot
+Treat these as symptom-based checks, not as separate chapters.
+
+1. **WiFi disappears after boot.**
 
 Check these first:
 
@@ -205,7 +207,7 @@ Check these first:
 2. whether the `br-lan` bridge ports are still empty
 3. whether “Bring up empty bridge” is enabled
 
-### 2. WiFi works, but there is no internet
+2. **WiFi works, but there is no internet.**
 
 Check these first:
 
@@ -213,7 +215,7 @@ Check these first:
 2. whether `WAN0` belongs to the `wan` firewall zone
 3. whether `LAN` still belongs to the `lan` firewall zone
 
-### 3. It works on macOS but not on Windows, or the reverse
+3. **It works on macOS but not on Windows, or the reverse.**
 
 Before suspecting PPPoE itself, check client-side network priority.
 

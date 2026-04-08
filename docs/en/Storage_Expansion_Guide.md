@@ -13,7 +13,7 @@ Read this page first if any of these apply:
 - backup archives, rule files, or repositories keep growing
 - you are not sure whether `/overlay` should be touched
 
-## One-line recommendation
+## Start with the conclusion
 
 On Raspberry Pi, the safe path usually depends on the image type:
 
@@ -32,9 +32,9 @@ df -h
 block info
 ```
 
-### Case A: `ext4` root filesystem
+1. If you see an `ext4` root filesystem
 
-If you see output like:
+If the output looks like:
 
 ```text
 /dev/root on / type ext4
@@ -50,9 +50,9 @@ In this case, when space is tight, the preferred path is:
 
 **expand the root partition, not `/overlay` and not `extroot`.**
 
-### Case B: `squashfs + overlay`
+2. If you see `squashfs + overlay`
 
-If you see output like:
+If the output looks like:
 
 ```text
 overlayfs:/overlay on / type overlay
@@ -69,58 +69,35 @@ In this case:
 - choose a data partition first if you only need more storage
 - choose `extroot` only when `/overlay` itself is too small for packages
 
-## Key terms in plain language
+## Quick glossary
 
-### Partition
+If terms such as `rootfs`, `/overlay`, or `extroot` slow you down, read this section first. If you already know them, you can jump straight to Step 2.
 
-A TF card is one physical storage device.
+1. **Partition**
 
-A partition splits it into logical areas, for example:
+A TF card is one physical storage device. A partition splits it into logical areas, for example `p1` for boot files, `p2` for the operating system, and `p3` for your own data.
 
-- `p1` for boot files
-- `p2` for the operating system
-- `p3` for your own data
+2. **Filesystem**
 
-### Filesystem
+A partition is only a chunk of space until it is formatted. Common filesystems on ImmortalWrt include `ext4` and `vfat`.
 
-A partition is only a chunk of space until it is formatted.
+3. **Mounting**
 
-Common filesystems on ImmortalWrt include:
+Mounting attaches a partition to a directory in the system tree. For example, if you mount `/dev/mmcblk0p3` to `/srv/storage`, then `/srv/storage` becomes the entry point to that partition.
 
-- `ext4`
-- `vfat`
-
-### Mounting
-
-Mounting attaches a partition to a directory in the system tree.
-
-For example:
-
-- mount `/dev/mmcblk0p3` to `/srv/storage`
-
-After that, `/srv/storage` is the entry point to that partition.
-
-### `rootfs`
+4. **`rootfs`**
 
 `rootfs` is the filesystem that provides the root directory `/`.
 
-### `/overlay`
+5. **`/overlay`**
 
-`/overlay` is the writable layer commonly used by `squashfs` images.
+`/overlay` is the writable layer commonly used by `squashfs` images. Many package installs and configuration changes end up there.
 
-Many package installs and configuration changes end up there.
+6. **`extroot`**
 
-### `extroot`
+`extroot` does not simply add another partition. It means moving the writable layer of a `squashfs` system to a larger ext4 partition, which is why it is more sensitive than creating a separate data partition.
 
-`extroot` does not simply add another partition.
-
-It means:
-
-**move the writable layer of a `squashfs` system to a larger ext4 partition.**
-
-That is why it is more sensitive than creating a separate data partition.
-
-## Choose a route before you run `mkfs`
+## Step 2: choose the route before you run `mkfs`
 
 | Goal | Current system | Recommended path | Beginner-safe |
 |---|---|---|---|
@@ -128,7 +105,7 @@ That is why it is more sensitive than creating a separate data partition.
 | Store repositories, backup archives, and large files | `squashfs` or `ext4` | Create a data partition and mount it at `/srv/storage` | Yes |
 | Increase writable package space on a `squashfs` image | `squashfs + overlay` | `extroot` | No, advanced only |
 
-## Route 1: expand the `ext4` root partition
+## Route A: expand the `ext4` root partition
 
 Use this path when:
 
@@ -136,7 +113,7 @@ Use this path when:
 - `mount` shows `/dev/root on / type ext4`
 - you plan to install iStore, OpenClash, quickstart, Git, and other packages
 
-### Why this route is recommended
+In practice, if you are already on an `ext4` root filesystem, this is usually the most direct and stable route.
 
 Advantages:
 
@@ -145,7 +122,9 @@ Advantages:
 - no need to introduce `extroot`
 - a better fit for plugin-heavy Raspberry Pi setups
 
-### Pre-flight checks
+Follow this route in order. Do not skip straight to partition changes.
+
+1. **Back up first, and clear stale mount settings.**
 
 Run:
 
@@ -162,7 +141,7 @@ Why:
 - the first command creates a config backup
 - the next commands remove stale `extroot` settings so the router does not try to mount `/overlay` incorrectly on the next boot
 
-### Install the required tools
+2. **Then install the required tools.**
 
 First identify your OpenWrt branch:
 
@@ -183,7 +162,7 @@ apk update
 apk add parted losetup resize2fs blkid e2fsprogs
 ```
 
-### Inspect the current partition layout
+3. **Then confirm the current partition layout.**
 
 ```bash
 parted -l -s
@@ -199,7 +178,7 @@ Number  Start   End     Size    Type     File system  Flags
 
 and the total disk size is much larger than `p2`, there is unallocated space available for expansion.
 
-### Safer method: offline expansion
+4. **Once you confirm expansion is possible, choose offline or online.**
 
 If you can power off and move the TF card to another computer, offline expansion is the safer method.
 
@@ -218,8 +197,6 @@ e2fsck -f /dev/mmcblk0p2
 resize2fs /dev/mmcblk0p2
 df -h
 ```
-
-### Online expansion: prefer the official OpenWrt script
 
 If you must do it online, the OpenWrt official expansion script is the safer software path:
 
@@ -242,7 +219,7 @@ Before you run it, make sure:
 - you are not gambling on an unattended remote site
 - you already have a backup
 
-### Verify the result
+5. **Verify the result before moving on.**
 
 Run:
 
@@ -264,9 +241,7 @@ Filesystem                Size      Used Available Use% Mounted on
 /dev/root                29.3G    114.5M     29.2G   0% /
 ```
 
-### What you can do after expansion
-
-At that point it is reasonable to continue with:
+After verification, it is reasonable to continue with:
 
 ```bash
 cd /root
@@ -282,7 +257,7 @@ Suggested order:
 3. install iStore and the rest afterwards
 4. create a backup before major changes
 
-## Route 2: create a data partition and mount it at `/srv/storage`
+## Route B: create a data partition and mount it at `/srv/storage`
 
 Use this path when:
 
@@ -290,7 +265,7 @@ Use this path when:
 - you do not want to change the root filesystem layout
 - you want Git repos, archives, and large rule files to live in a separate area
 
-### When this route is the better first choice
+This route is for the case where you want to leave the system layout alone and move repositories, backups, and large files elsewhere.
 
 If your situation looks more like:
 
@@ -300,7 +275,9 @@ If your situation looks more like:
 
 this route is usually more stable than `extroot`.
 
-### Inspect before changing anything
+This route should also be done in order. Do not start by running `mkfs.ext4`.
+
+1. **Inspect the current state first.**
 
 Run:
 
@@ -319,7 +296,7 @@ If you discover:
 
 stop there. Do not format the partition until you confirm whether it is already used by the system.
 
-### Install the required tools
+2. **Only after that should you install the required tools.**
 
 First identify your OpenWrt branch:
 
@@ -340,7 +317,7 @@ apk update
 apk add block-mount kmod-fs-ext4 e2fsprogs fdisk cfdisk
 ```
 
-### Create the partition
+3. **Then create the partition.**
 
 ```bash
 cfdisk /dev/mmcblk0
@@ -362,7 +339,7 @@ Assume the new partition is:
 /dev/mmcblk0p3
 ```
 
-### Format and test-mount it
+4. **Format it and test-mount it first.**
 
 ```bash
 umount /dev/mmcblk0p3 2>/dev/null
@@ -374,7 +351,7 @@ mount -t ext4 /dev/mmcblk0p3 /srv/storage
 df -h | grep mmcblk0p3
 ```
 
-### Configure boot-time mounting
+5. **Once that works, configure boot-time mounting.**
 
 ```bash
 UUID="$(block info /dev/mmcblk0p3 | sed -n 's/.*UUID=\"\\([^\"]*\\)\".*/\\1/p')"
@@ -395,14 +372,14 @@ uci commit fstab
 reboot
 ```
 
-### Verify after reboot
+6. **Verify again after reboot.**
 
 ```bash
 mount | grep srv/storage
 df -h
 ```
 
-### Suggested directory layout
+After that, organize the directory layout:
 
 ```bash
 mkdir -p /srv/storage/repos
@@ -423,7 +400,7 @@ If you still want the old `/root` path, create a symlink:
 ln -s /srv/storage/repos/Immortalwrt-AutoBackup /root/Immortalwrt-AutoBackup
 ```
 
-## Route 3: `extroot`
+## Route C: only consider `extroot` under these conditions
 
 Only consider `extroot` when all of these are true:
 
@@ -436,9 +413,9 @@ See:
 
 - [Overlay / Extroot Expansion (Advanced)](./ExtendOverlaySize.md)
 
-## Situations where you should stop first
+## Situations where you should stop and reassess
 
-### Situation 1: `mkfs.ext4` reports an existing `overlay`
+1. **`mkfs.ext4` reports an existing `overlay`.**
 
 Example:
 
@@ -457,7 +434,7 @@ block info
 uci show fstab
 ```
 
-### Situation 2: you are on `ext4` root but still plan to follow an `extroot` tutorial
+2. **You are already on `ext4` root but still plan to follow an `extroot` tutorial.**
 
 If `mount` shows:
 
@@ -467,7 +444,7 @@ If `mount` shows:
 
 do not use the `extroot` guide.
 
-### Situation 3: installing many packages before verifying storage
+3. **Installing many packages before verifying the storage state.**
 
 Check first:
 
@@ -477,7 +454,7 @@ df -h
 
 Make sure `/` or `/srv/storage` is ready before installing iStore, OpenClash, Git, or large rule sets.
 
-## If the system behaves abnormally after partition changes
+## If the system behaves abnormally after partition changes, check in this order
 
 Check in this order:
 
@@ -493,7 +470,7 @@ If the router no longer boots correctly, the fastest recovery path is usually:
 2. restore your backup after the first boot
 3. return to this guide and re-check which route matches your actual system type
 
-## Recommended reading order
+## What to read next
 
 1. read this guide first to identify the system type and choose a route
 2. if you only need backup and restore, continue with [OpenWrt_Backup_Resotre.md](./OpenWrt_Backup_Resotre.md)

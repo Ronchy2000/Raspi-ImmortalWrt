@@ -17,7 +17,7 @@
 
 ## Backup Files
 
-### 📦 tar.gz Archive (For System Restore)
+1. **`tar.gz` archive (for system restore)**
 - **Filename**: `backup_20231213_150023.tar.gz`
 - **Content**: Complete system backup (sysupgrade format)
 - **Usage**: 
@@ -25,7 +25,7 @@
   - CLI: `sysupgrade -r backup_20231213_150023.tar.gz`
 - **Location**: GitHub repo root
 
-### 📁 configs/ Folder (For Viewing Changes)
+2. **`configs/` folder (for viewing changes)**
 - **Content**: Extracted `/etc/config/` files from tar.gz
 - **Usage**: 
   - View changes on GitHub
@@ -35,7 +35,9 @@
 
 ## Setup
 
-### 1. Install Dependencies
+Follow the setup in order.
+
+1. **Install dependencies**
 First identify your OpenWrt branch:
 
 - `OpenWrt 24.10 and earlier stable releases`: use `opkg`
@@ -55,14 +57,14 @@ apk update
 apk add git openssh-client openssh-keygen ca-bundle ca-certificates
 ```
 
-### 2. Generate SSH Key
+2. **Generate the SSH key**
 ```bash
 ssh-keygen -t ed25519 -f /root/.ssh/id_ed25519 -N ""
 cat /root/.ssh/id_ed25519.pub   # Add to GitHub SSH keys
 ssh -T git@github.com
 ```
 
-### 3. Configure SSH (Port 443)
+3. **Configure SSH (port 443)**
 ```bash
 cat > /root/.ssh/config <<'EOF'
 Host github.com
@@ -75,7 +77,7 @@ EOF
 chmod 600 /root/.ssh/config
 ```
 
-### 4. Deploy Script
+4. **Deploy the backup script**
 ```bash
 wget -O /root/smart_backup.sh https://raw.githubusercontent.com/YOUR_USER/REPO/master/scripts/smart_backup.sh
 chmod +x /root/smart_backup.sh
@@ -83,7 +85,7 @@ chmod +x /root/smart_backup.sh
 vi /root/smart_backup.sh
 ```
 
-### 5. Schedule (15:00 Daily)
+5. **Schedule it (15:00 daily)**
 ```bash
 echo "0 15 * * * /root/smart_backup.sh >> /root/smart_backup.log 2>&1" >> /etc/crontabs/root
 /etc/init.d/cron restart
@@ -91,13 +93,15 @@ echo "0 15 * * * /root/smart_backup.sh >> /root/smart_backup.log 2>&1" >> /etc/c
 
 ## Restore Backup
 
-### Via LuCI
+Choose one restore path:
+
+1. **Via LuCI**
 1. Download `backup_YYYYMMDD_HHMMSS.tar.gz` from GitHub
 2. Login to router: http://192.168.1.1
 3. **System** → **Backup/Flash Firmware** → **Restore backup**
 4. Upload and wait for reboot
 
-### Via SSH
+2. **Via SSH**
 ```bash
 cd /tmp
 wget https://github.com/USER/REPO/raw/master/backup_20231213_150023.tar.gz
@@ -107,13 +111,13 @@ reboot
 
 ## View Changes
 
-### On GitHub
+1. **On GitHub**
 1. Open backup repository
 2. Navigate to `configs/` folder
 3. Click any file (e.g., `network`)
 4. Click **History** to view changes
 
-### Via Git
+2. **Via Git**
 ```bash
 cd /root/Immortalwrt-AutoBackup
 git log --oneline configs/network

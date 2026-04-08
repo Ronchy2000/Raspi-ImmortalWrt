@@ -66,13 +66,15 @@ block info
 
 ## 操作前准备
 
-### 1. 先备份
+按下面顺序做。
+
+1. **先备份。**
 
 ```bash
 sysupgrade -b /tmp/pre-extroot-$(date +%F).tar.gz
 ```
 
-### 2. 安装工具
+2. **再安装工具。**
 
 先判断系统版本：
 
@@ -95,7 +97,7 @@ apk add block-mount kmod-fs-ext4 e2fsprogs fdisk cfdisk rsync
 
 如果仓库里没有 `rsync`，后面可以改用 `cp -a`。
 
-### 3. 确认存在可用空闲空间
+3. **然后确认确实还有可用空闲空间。**
 
 ```bash
 fdisk -l /dev/mmcblk0

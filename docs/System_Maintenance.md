@@ -15,13 +15,13 @@
 <a id="system-info"></a>
 ## 系统信息
 
-### 硬件配置
+1. **硬件配置**
 - **设备**: 树莓派 4B (aarch64_cortex-a72)
 - **系统**: ImmortalWrt 24.10.3 r33451-5531f6bc76a3
 - **内存**: 4GB
 - **存储**: 32GB SD卡 (10GB分区)
 
-### 网络配置
+2. **网络配置**
 - **IP地址**: 192.168.1.1
 - **SSH端口**: 22
 - **Web管理**: http://192.168.1.1
@@ -33,7 +33,7 @@
 
 系统已配置三个自动化监控脚本，确保系统稳定运行。
 
-### 1. 健康监控 (每30分钟)
+1. **健康监控（每 30 分钟）**
 
 **脚本位置**: `/root/health_monitor.sh`
 
@@ -48,7 +48,7 @@
 tail -50 /root/health_monitor.log
 ```
 
-### 2. LuCI看门狗 (每5分钟)
+2. **LuCI 看门狗（每 5 分钟）**
 
 **脚本位置**: `/root/luci_watchdog.sh`
 
@@ -63,7 +63,7 @@ tail -50 /root/health_monitor.log
 tail -50 /root/luci_watchdog.log
 ```
 
-### 3. 智能备份 (Smart Backup)
+3. **智能备份（Smart Backup）**
 
 **脚本位置**: `/root/smart_backup.sh` (替代旧版 `github_backup_optimized.sh`)
 
@@ -97,7 +97,7 @@ tail -50 /root/smart_backup.log
 /root/smart_backup.sh --force
 ```
 
-### 定时任务配置
+4. **定时任务配置**
 
 建议配置在每天下午 15:00 执行。脚本内置了稳定性检查，即使开机时间晚于 15:00 (通过开机自启触发) 或网络不稳定，脚本也会自动等待直到系统就绪。
 
@@ -137,7 +137,7 @@ crontab -l
 <a id="troubleshooting"></a>
 ## 故障排查
 
-### haproxy 崩溃循环问题 ⚠️
+1. **`haproxy` 崩溃循环问题**
 
 **症状**: 系统日志显示 `haproxy::instance1 is in a crash loop`
 
@@ -153,7 +153,7 @@ crontab -l
 /etc/init.d/haproxy enabled && echo "已启用" || echo "已禁用"
 ```
 
-### WiFi 连接但无网络
+2. **WiFi 连接但无网络**
 
 **排查步骤**:
 ```bash
@@ -170,7 +170,7 @@ nslookup google.com
 logread | grep -i "openclash\|error"
 ```
 
-### LuCI 无法访问
+3. **LuCI 无法访问**
 
 **排查步骤**:
 ```bash
@@ -191,7 +191,7 @@ chmod +x /www/cgi-bin/luci  # 如果不可执行
 tail -20 /root/luci_watchdog.log
 ```
 
-### 系统性能检查
+4. **系统性能检查**
 
 ```bash
 # 查看运行时间和负载
@@ -216,7 +216,7 @@ logread | tail -50
 ps aux | sort -k4 -r | head -10
 ```
 
-### 内存不足
+5. **内存不足**
 
 ```bash
 # 查看内存占用最高的进程
@@ -281,7 +281,9 @@ uci show fstab
 - [手动备份与恢复](./OpenWrt_Backup_Resotre.md)
 - [ImmortalWrt GitHub 自动备份（旧版参考）](./OpenWrt_AutoBackup.md)
 
-### 写入与日志管理建议
+补充建议如下：
+
+1. **写入与日志管理建议**
 
 1. 备份保留数量保持在必要范围内
 2. 中间处理尽量放到 `/tmp`
@@ -296,7 +298,7 @@ uci show fstab
 > /root/smart_backup.log
 ```
 
-### 每周检查
+2. **每周检查**
 
 ```bash
 # 查看监控日志
@@ -316,7 +318,7 @@ free -h
 /etc/init.d/uhttpd status
 ```
 
-### 每月维护
+3. **每月维护**
 
 先判断系统版本：
 
@@ -344,7 +346,7 @@ apk list --upgradeable
 uptime
 ```
 
-### 重要提醒
+4. **重要提醒**
 
 **不要做**:
 - ❌ 不要启用 haproxy (除非需要负载均衡)
@@ -364,7 +366,7 @@ uptime
 
 ## 快速参考命令
 
-### 服务管理
+1. **服务管理**
 ```bash
 # OpenClash
 /etc/init.d/openclash start|stop|restart|status
@@ -379,7 +381,7 @@ uptime
 /etc/init.d/dnsmasq restart
 ```
 
-### 系统操作
+2. **系统操作**
 ```bash
 # 重启系统
 reboot
@@ -393,7 +395,7 @@ ifconfig
 ip addr show
 ```
 
-### 备份相关
+3. **备份相关**
 ```bash
 # 手动备份
 /root/smart_backup.sh
@@ -448,7 +450,7 @@ tail -50 /root/smart_backup.log
 
 系统中存在多个文档文件，部分内容重复，建议进行整理。
 
-### 系统中的文档文件
+1. **系统中的文档文件**
 
 ```
 /root/
@@ -462,7 +464,7 @@ tail -50 /root/smart_backup.log
 
 ## 整理方案
 
-### 保留的文件 (系统中)
+1. **保留的文件（系统中）**
 
 **运行脚本** (必须保留):
 - `/root/health_monitor.sh`
@@ -481,7 +483,7 @@ tail -50 /root/smart_backup.log
 **快速参考** (可选保留):
 - `/root/QUICK_REFERENCE.txt` - 方便SSH后快速查看
 
-### 可以删除或合并的文档
+2. **可以删除或合并的文档**
 
 这些文档的内容已整理到项目中，系统中可以删除：
 
@@ -501,7 +503,7 @@ rm /root/SYSTEM_MAINTENANCE_LOG.md
 
 ## 优化后的文档结构
 
-### 项目中 (GitHub)
+1. **项目中（GitHub）**
 
 ```
 Raspi-ImmortalWrt/
@@ -521,7 +523,7 @@ Raspi-ImmortalWrt/
     └── smart_backup.sh                # 智能备份 (NEW)
 ```
 
-### 系统中 (OpenWrt)
+2. **系统中（OpenWrt）**
 
 ```
 /root/
@@ -539,7 +541,7 @@ Raspi-ImmortalWrt/
 
 ## 执行整理
 
-### 方案1: 保守整理 (推荐)
+1. **方案 1：保守整理（推荐）**
 
 保留快速参考，删除其他文档：
 
@@ -559,7 +561,7 @@ ls -lh /root/docs_archive/
 EOF
 ```
 
-### 方案2: 彻底清理
+2. **方案 2：彻底清理**
 
 删除所有文档，只保留脚本和日志：
 
@@ -596,7 +598,7 @@ echo "✅ 日志已清理"
 EOF
 ```
 
-### 自动日志清理 (可选)
+1. **自动日志清理（可选）**
 
 添加到 crontab，每月自动清理：
 
@@ -609,13 +611,13 @@ EOF
 
 ## 文档维护原则
 
-### 单一信息源
+1. **单一信息源**
 
 - ✅ **项目 (GitHub)**: 完整文档、配置说明、脚本源码
 - ✅ **系统 (OpenWrt)**: 运行脚本、日志、状态文件
 - ❌ **避免**: 在系统中保存大量静态文档
 
-### 优势
+2. **优势**
 
 1. **版本控制**: GitHub 提供版本历史
 2. **备份安全**: 项目代码永久保存

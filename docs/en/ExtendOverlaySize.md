@@ -64,13 +64,15 @@ If you do not see `overlayfs:/overlay`, this guide is not the right one for your
 
 ## Preparation
 
-### 1. Back up first
+Follow the preparation in order.
+
+1. **Back up first.**
 
 ```bash
 sysupgrade -b /tmp/pre-extroot-$(date +%F).tar.gz
 ```
 
-### 2. Install the required tools
+2. **Then install the required tools.**
 
 First identify your OpenWrt branch:
 
@@ -93,7 +95,7 @@ apk add block-mount kmod-fs-ext4 e2fsprogs fdisk cfdisk rsync
 
 If `rsync` is unavailable in your feed, use `cp -a` later instead.
 
-### 3. Confirm there is actual free space
+3. **Then confirm there is actual free space.**
 
 ```bash
 fdisk -l /dev/mmcblk0

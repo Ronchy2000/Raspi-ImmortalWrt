@@ -28,10 +28,14 @@
 ## 恢复
 
 拿出新卡 or U盘
-### 烧录固件
+
+恢复部分按顺序看，不要把下面几段拆成互不相关的章节。
+
+1. **先烧录固件。**
+
 烧录树莓派相关的版本的固件。请见Openwrt[固件选择](../README.md#firmware_selection_cn)以及[烧录教程](./Write_Image.md)
 
-### 恢复备份
+2. **再恢复备份。**
 
 <strong>重要：如果您不执行以以下操作，直接从`备份与恢复`设置`上传备份`，会报错！且难以解决！最好的方式就是新系统自行安装好插件，再进行备份文件上传。</strong>
 
@@ -86,7 +90,7 @@ apk add luci-theme-argon luci-app-openclash luci-i18n-passwall-zh-cn luci-i18n-h
 ---
 
 
-### 命令行备份及恢复。
+如果你更习惯命令行，可以直接按下面这组步骤走。
 
 1. 给openwrt安装sftp服务：
 ```bash
@@ -121,7 +125,9 @@ apk add luci-app-openclash luci-i18n-passwall-zh-cn luci-i18n-homeproxy-zh-cn lu
 - **版本对比**: 你可以在 GitHub 上直接看到每次备份改了什么参数。
 - **单文件恢复**: 如果你只改坏了一个配置（比如 `network`），不需要回滚整个系统，只需恢复这一个文件。
 
-### 场景 1: 恢复单个配置文件
+这部分按使用场景看就够了，不需要再把它理解成新的大章节。
+
+1. **恢复单个配置文件。**
 
 假设你把网络设置 (`/etc/config/network`) 改坏了，导致连不上网，或者配置错乱。
 
@@ -153,7 +159,7 @@ apk add luci-app-openclash luci-i18n-passwall-zh-cn luci-i18n-homeproxy-zh-cn lu
    /etc/init.d/network restart
    ```
 
-### 场景 2: 批量恢复所有配置
+2. **批量恢复所有配置。**
 
 如果你想把整个 `/etc/config` 目录回滚到 GitHub 上的某个版本：
 
@@ -212,10 +218,13 @@ Backup complete.
 
 Take out new card or USB drive.
 
-### Flash Firmware
+Read the restore flow in order:
+
+1. **Flash the firmware first.**
+
 Flash the Raspberry Pi related version firmware. Please see OpenWrt [Firmware Selection](../README.md#firmware_selection_en) and [Flashing Tutorial](./Write_Image.md)
 
-### Restore Backup
+2. **Then restore the backup.**
 
 <strong>Important: If you do not perform the following operations and directly upload the backup from `Backup & Restore` settings, it will report errors! And it's difficult to resolve! The best way is to install plugins on the new system first, then upload the backup file.</strong>
 
@@ -266,7 +275,7 @@ Restore complete. You can exit this document now!
 If you are a command-line user, please follow me.
 ---
 
-### Command Line Backup and Restore
+If you prefer the command line, use this path instead.
 
 1. Install SFTP service for OpenWrt:
 ```bash

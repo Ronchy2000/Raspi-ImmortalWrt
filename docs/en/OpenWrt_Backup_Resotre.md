@@ -27,10 +27,13 @@ Backup complete.
 
 Take out new card or USB drive.
 
-### Flash Firmware
+Read the restore flow in order:
+
+1. **Flash the firmware first.**
+
 Flash the Raspberry Pi related version firmware. Please see OpenWrt [Firmware Selection](../../README_EN.md#firmware_selection_en) and [Flashing Tutorial](./Write_Image.md)
 
-### Restore Backup
+2. **Then restore the backup.**
 
 <strong>Important: If you do not perform the following operations and directly upload the backup from `Backup & Restore` settings, it will report errors! And it's difficult to resolve! The best way is to install plugins on the new system first, then upload the backup file.</strong>
 
@@ -81,7 +84,7 @@ Restore complete. You can exit this document now!
 If you are a command-line user, please follow me.
 ---
 
-### Command Line Backup and Restore
+If you prefer the command line, use this path instead.
 
 1. Install SFTP service for OpenWrt:
 ```bash

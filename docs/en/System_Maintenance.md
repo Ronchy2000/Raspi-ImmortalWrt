@@ -16,14 +16,14 @@
 
 ## System Information
 
-### Hardware
+1. **Hardware**
 
 - **Device**: Raspberry Pi 4B (`aarch64_cortex-a72`)
 - **System**: ImmortalWrt 24.10.3 `r33451-5531f6bc76a3`
 - **Memory**: 4GB
 - **Storage**: 32GB SD card
 
-### Network
+2. **Network**
 
 - **LAN IP**: `192.168.1.1`
 - **SSH Port**: `22`
@@ -35,7 +35,7 @@
 
 Three scripts are used to keep the system stable.
 
-### 1. Health Monitor (every 30 minutes)
+1. **Health Monitor (every 30 minutes)**
 
 - **Script**: `/root/health_monitor.sh`
 - **Checks**:
@@ -50,7 +50,7 @@ Check logs:
 tail -50 /root/health_monitor.log
 ```
 
-### 2. LuCI Watchdog (every 5 minutes)
+2. **LuCI Watchdog (every 5 minutes)**
 
 - **Script**: `/root/luci_watchdog.sh`
 - **Checks**:
@@ -65,7 +65,7 @@ Check logs:
 tail -50 /root/luci_watchdog.log
 ```
 
-### 3. Smart Backup (daily, change-triggered backup logic)
+3. **Smart Backup (daily, change-triggered backup logic)**
 
 - **Script**: `/root/smart_backup.sh`
 - **Core features**:
@@ -86,7 +86,7 @@ Run backup manually:
 /root/smart_backup.sh --force
 ```
 
-### Suggested Scheduling
+4. **Suggested scheduling**
 
 1. **Crontab**
 
@@ -112,7 +112,7 @@ crontab -l
 
 ## Troubleshooting
 
-### haproxy Crash Loop
+1. **`haproxy` crash loop**
 
 Symptom:
 
@@ -131,7 +131,7 @@ Verify:
 /etc/init.d/haproxy enabled && echo "enabled" || echo "disabled"
 ```
 
-### Wi-Fi Connected But No Internet
+2. **Wi-Fi connected but no internet**
 
 ```bash
 # 1) Check OpenClash status
@@ -147,7 +147,7 @@ nslookup google.com
 logread | grep -i "openclash\\|error"
 ```
 
-### LuCI Web UI Not Accessible
+3. **LuCI Web UI not accessible**
 
 ```bash
 # 1) Check uhttpd
@@ -167,7 +167,7 @@ chmod +x /www/cgi-bin/luci
 tail -20 /root/luci_watchdog.log
 ```
 
-### Performance Inspection
+4. **Performance inspection**
 
 ```bash
 # Uptime and load
@@ -242,7 +242,9 @@ Related docs:
 - [Manual Backup and Restore](./OpenWrt_Backup_Resotre.md)
 - [ImmortalWrt GitHub Auto Backup (Legacy Reference)](./OpenWrt_AutoBackup.md)
 
-### Write and log management
+Additional guidance:
+
+1. **Write and log management**
 
 1. keep backup retention limited to what you actually need
 2. use `/tmp` for temporary processing where possible
@@ -257,7 +259,7 @@ Optional cleanup:
 > /root/smart_backup.log
 ```
 
-### Weekly
+2. **Weekly**
 
 ```bash
 tail -100 /root/health_monitor.log
@@ -269,7 +271,7 @@ free -h
 /etc/init.d/uhttpd status
 ```
 
-### Monthly
+3. **Monthly**
 
 First identify your OpenWrt branch:
 
@@ -301,7 +303,7 @@ uptime
 
 ## Quick Reference Commands
 
-### Service Management
+1. **Service management**
 
 ```bash
 # OpenClash
@@ -317,7 +319,7 @@ uptime
 /etc/init.d/dnsmasq restart
 ```
 
-### System Operations
+2. **System operations**
 
 ```bash
 # Reboot
@@ -332,7 +334,7 @@ ifconfig
 ip addr show
 ```
 
-### Backup Commands
+3. **Backup commands**
 
 ```bash
 # Manual backup

@@ -11,13 +11,15 @@
 
 ## 接口参数
 
-### 1. 常规设置
+按这个顺序看就够了，不需要把它理解成三段完全独立的配置。
+
+1. **先看常规设置。**
 
 按下图设置即可（保持与示例一致）。
 
 ![](../figures/LAN_Connection/lan-02-general-settings.png)
 
-### 2. DNS 设置
+2. **再看 DNS 设置。**
 
 按下图填写 DNS。
 
@@ -27,7 +29,7 @@
 
 ![](../figures/LAN_Connection/lan-04-dns-check.png)
 
-### 3. DHCP 设置
+3. **最后确认 DHCP 设置。**
 
 如果你不熟悉 DHCP 相关概念，建议直接与下图保持一致。
 

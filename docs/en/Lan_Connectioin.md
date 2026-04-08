@@ -12,13 +12,15 @@ In LuCI Web UI, go to: `Network -> Interfaces`, find `LAN` (or the interface you
 
 ## Interface Settings
 
-### 1. General Settings
+Read this section as one continuous flow instead of three disconnected blocks.
+
+1. **Start with the general settings.**
 
 Follow the screenshot and keep the values consistent with the example.
 
 ![](../../figures/LAN_Connection/lan-02-general-settings.png)
 
-### 2. DNS Settings
+2. **Then confirm the DNS settings.**
 
 Fill DNS as shown in the screenshot.
 
@@ -28,7 +30,7 @@ Common DNS input locations are shown below:
 
 ![](../../figures/LAN_Connection/lan-04-dns-check.png)
 
-### 3. DHCP Settings
+3. **Finally verify the DHCP settings.**
 
 If you are not familiar with DHCP, keep your settings exactly the same as the screenshot.
 
@@ -43,4 +45,3 @@ If OpenClash is enabled on the Raspberry Pi, devices connected to that Wi-Fi wil
 
 > Reference video: Raspberry Pi LAN uplink setup (YouTube)
 > https://www.youtube.com/watch?v=jrqwhug_nO8
-

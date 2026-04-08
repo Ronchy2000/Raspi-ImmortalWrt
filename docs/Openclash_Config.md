@@ -51,7 +51,9 @@ cat /etc/openwrt_release
 
 ## 第 2 步：按版本选择安装路径
 
-### 路线 A：OpenWrt 24.10 及更早稳定版
+这里其实只需要先做一个判断，然后沿着对应命令走下去。
+
+1. **如果你是 `OpenWrt 24.10 及更早稳定版`。**
 
 这类系统继续使用 `opkg`。
 
@@ -74,7 +76,7 @@ opkg install /tmp/example.ipk
 - 仍停留在 `24.10.x` 或更早稳定版
 - 现有教程、旧博客、旧视频基本都还是按这条路线写的
 
-### 路线 B：OpenWrt 25.12 及更新版本 / 新分支
+2. **如果你是 `OpenWrt 25.12 及更新版本 / 新分支`。**
 
 这类系统已经改用 `apk`。
 
@@ -97,7 +99,7 @@ apk add --allow-untrusted /tmp/example.apk
 - 如果第三方插件只提供旧格式包，先确认插件作者是否已适配新分支
 - 不要强行混装旧包格式
 
-### 一个非常重要的提醒
+最后记住这一点，不要把它当成可选提醒：
 
 根据 OpenWrt 官方的 `opkg -> apk` 对照说明：
 
@@ -128,7 +130,9 @@ apk add --allow-untrusted /tmp/example.apk
 
 无论你是 `opkg` 还是 `apk` 系统，OpenClash 的配置导入思路都一样。
 
-### 4.1 先改订阅链接
+按这个顺序做就行。
+
+1. **先改订阅链接。**
 
 打开你要用的 YAML 文件，找到：
 
@@ -145,7 +149,7 @@ proxy-providers:
 - 不要把订阅链接直接提交到 GitHub
 - 如果你准备分享配置文件，请始终保留占位符
 
-### 4.2 再导入 OpenClash
+2. **再导入 OpenClash。**
 
 常见做法有两种：
 
@@ -171,7 +175,7 @@ proxy-providers:
 
 换句话说，这不是把整份配置推倒重写，而是只改最影响体验的那一层。
 
-### 它做了什么
+它实际做的事情很集中：
 
 `config_linkedin_auto.yaml` 里的核心变化是：
 
@@ -191,7 +195,7 @@ proxy-providers:
 
 这部分要掌握。
 
-### 规则加在哪里
+1. **规则加在哪里。**
 
 请到 YAML 里的 `rules:` 区域去加，优先放在自定义规则前部，例如：
 
@@ -208,7 +212,7 @@ rules:
 - 你自己新增的站点，建议放在通用规则前面
 - 如果放得太靠后，前面的 `RULE-SET` 可能已经把它匹配走了
 
-### 学术网站为什么很多要走直连
+2. **为什么很多学术网站要走直连。**
 
 你仓库里的配置已经把一批常见学术站点放进直连，例如：
 
@@ -231,7 +235,7 @@ rules:
 - DOMAIN-SUFFIX,library.example.edu,DIRECT
 ```
 
-### 如果我想让某个站点走代理呢
+3. **如果你想让某个站点走代理。**
 
 把末尾的 `DIRECT` 改成你想走的策略组即可，例如：
 
@@ -247,7 +251,7 @@ rules:
 - `🍀 Google`：强制走 Google 分组
 - `📲 Telegram`：强制走 Telegram 分组
 
-### 改规则时最容易犯的错
+4. **改规则时最容易犯的错。**
 
 1. 新规则加得太靠后，结果根本没生效
 2. 域名写错，把 `DOMAIN` 和 `DOMAIN-SUFFIX` 混用了
@@ -267,7 +271,7 @@ rules:
 
 ## 第 8 步：常见问题
 
-### 1. 为什么我还是在手动切节点？
+1. **为什么我还是在手动切节点？**
 
 先检查两件事：
 
@@ -276,7 +280,7 @@ rules:
 
 很多时候不是自动切换没生效，而是后台还在跑旧配置。
 
-### 2. 为什么 LinkedIn 又跳到中国区了？
+2. **为什么 LinkedIn 又跳到中国区了？**
 
 优先检查：
 
@@ -284,7 +288,7 @@ rules:
 2. 有没有恢复“绕过大陆”但没处理 LinkedIn 排除
 3. 有没有把 LinkedIn 相关自定义规则删掉
 
-### 3. 为什么 25.12 系统按旧教程装不上？
+3. **为什么 25.12 系统按旧教程装不上？**
 
 因为很多旧教程默认前提还是：
 
@@ -294,7 +298,7 @@ rules:
 
 而你的系统已经切到 `apk` 路线了。先确认教程是不是基于 `24.10` 或更早版本写的，再决定能不能照抄。
 
-### 4. 为什么学术网站打开正常，但文献下载不对？
+4. **为什么学术网站打开正常，但文献下载不对？**
 
 这类情况通常不是网页打不开，而是出口 IP 身份不对。优先把对应站点加入直连规则，再重载测试。
 
@@ -365,7 +369,9 @@ proxy-providers:
 
 ## Package Manager Split
 
-### OpenWrt 24.10 and earlier
+Read this as one decision point with two branches.
+
+1. **OpenWrt 24.10 and earlier**
 
 ```bash
 opkg update
@@ -373,7 +379,7 @@ opkg install <package-name>
 opkg install /tmp/example.ipk
 ```
 
-### OpenWrt 25.12 and newer
+2. **OpenWrt 25.12 and newer**
 
 ```bash
 apk update
