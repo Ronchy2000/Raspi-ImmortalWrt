@@ -1,12 +1,12 @@
 # OpenClash Network Access Configuration
 
-This guide follows the shortest practical path:
+You can read this guide in the following order:
 
-- get OpenClash working first
+- first get OpenClash working and start using it
 - then learn how to add your own direct/proxy rules
-- then review the built-in scenarios such as academic-library direct access, custom routing, LinkedIn fixes, and GitHub SSH port `22`
+- finally review the built-in scenarios such as academic-library direct access, custom routing, LinkedIn fixes, and GitHub SSH port `22`
 
-This repo now keeps only two supported OpenClash YAML files:
+You only need to choose between these two supported OpenClash YAML files:
 
 | File | Use case |
 | --- | --- |
@@ -21,6 +21,73 @@ These YAMLs are useful starting points because they already include:
 - direct-routing ideas for academic libraries, so paper downloads need less proxy toggling
 - a LinkedIn international-access fix
 - automatic failover in the default config, so daily use needs less manual node switching
+
+## What OpenClash Is
+
+If this is your first time using OpenClash, the simplest way to think about it is:
+
+- it is a common proxy plugin for OpenWrt / ImmortalWrt
+- it gives you one place to manage subscriptions, nodes, DNS, routing rules, and policy groups
+- after setup, you can decide which sites go direct and which sites go through a proxy
+
+For most users, OpenClash is mainly used to:
+
+- manage subscription links and nodes
+- route home devices through proxy or split-routing rules
+- send different websites to direct, proxy, or specific groups
+
+You do not need to understand every internal detail before using it. Install the plugin, import the YAML, confirm a few UI settings, and you can already start using it.
+
+## How To Download And Install OpenClash
+
+Before installing, confirm two things:
+
+1. whether your system is `24.10 and earlier` or `25.12+`
+2. whether the package you downloaded matches both your system version and device architecture
+
+There are two common ways to install it.
+
+### Option 1: install directly from the system
+
+If your firmware source already provides OpenClash, you can install it directly.
+
+For `24.10 and earlier`:
+
+```bash
+opkg update
+opkg install luci-app-openclash
+```
+
+For `25.12+`:
+
+```bash
+apk update
+apk add luci-app-openclash
+```
+
+### Option 2: download a matching package and install it manually
+
+If your package source does not include OpenClash, the usual path is to download a package that matches your system and then install it manually.
+
+Check these points:
+
+- the plugin build should match your OpenWrt / ImmortalWrt version
+- the package architecture should match your device
+- do not reuse the older `opkg/.ipk` flow on newer `apk` systems
+
+Typical install commands:
+
+```bash
+# 24.10 and earlier
+opkg install /tmp/example.ipk
+
+# 25.12+
+apk add --allow-untrusted /tmp/example.apk
+```
+
+After installation, the entry is usually available in LuCI under:
+
+`Services -> OpenClash`
 
 ## Quick Start
 
@@ -68,11 +135,11 @@ At this point you can already:
 - start browsing through the proxy normally
 - use the YAML's built-in routing behavior as-is
 
-The rest of this guide is advanced customization, mainly for users who want to:
+The rest of this guide is advanced customization. Use it as a self-check section if you want to:
 
 - add extra direct/proxy rules
 - understand how Steam, academic-library routing, LinkedIn, and SSH `22` are handled
-- keep tuning the YAML for their own usage
+- keep tuning the YAML for your own usage
 
 ## Advanced Custom Rules
 
@@ -154,6 +221,8 @@ Required UI settings:
 - disable `TUN`
 - keep `DST-PORT,22,DIRECT`
 - still disable mainland-bypass and DNS override options
+
+If you do not have an SSH `22` problem, keep using the default `config_linkedin_auto.yaml`.
 
 ## References
 
