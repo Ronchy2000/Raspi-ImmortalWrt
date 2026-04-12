@@ -1,58 +1,164 @@
 # OpenClash Network Access Configuration
 
-> For specific configuration details, please refer to the YouTube video in the README documentation. When the author has time, a pre-configured firmware will be released directly.
+This guide follows the shortest practical path:
 
-## Network Access Configuration
-> Honestly, isn't this what all the software router tinkering has been for?
-> When you successfully configure network access and see all your home devices freely and quickly accessing the internet, that moment of satisfaction is absolutely the meaning of all this effort.
+- get OpenClash working first
+- then learn how to add your own direct/proxy rules
+- then review the built-in scenarios such as academic-library direct access, custom routing, LinkedIn fixes, and GitHub SSH port `22`
 
-> Next, let's configure OpenClash and see how to make OpenWrt's software router truly "fly".
+This repo now keeps only two supported OpenClash YAML files:
 
-**1. Install Network Access Plugins such as OpenClash**
+| File | Use case |
+| --- | --- |
+| [config_linkedin_auto.yaml](../../config_linkedin_auto.yaml) | Default choice for most users |
+| [config_linkedin_auto_ssh22_redir.yaml](../../config_linkedin_auto_ssh22_redir.yaml) | Use only when GitHub SSH port `22` fails under OpenClash |
 
-Download and add according to personal preference (cannot use multiple simultaneously!)
-- OpenClash (Highly recommended, most widely used, this tutorial is based on it)
-- passWall
-- etc.
+The older `config.yaml` and `config_linkedin.yaml` were legacy transition files and are now deprecated.
 
-> After installing the OpenClash plugin, watch this video first and complete the basic configuration step by step:
-Link: https://www.youtube.com/watch?v=1U9xkpexHOE
+These YAMLs are useful starting points because they already include:
 
-Unlike in the video, the `config.yaml` in the video has two issues in actual use: first, `LinkedIn` cannot be accessed normally, and second, `academic websites` like IEEE cannot correctly identify academic network IPs, requiring frequent network switching to download papers. The configuration provided in this article adjusts rules and DNS splitting to solve these issues and provides reproducible examples and verification steps.
+- room for your own custom `rules:` entries
+- direct-routing ideas for academic libraries, so paper downloads need less proxy toggling
+- a LinkedIn international-access fix
+- automatic failover in the default config, so daily use needs less manual node switching
 
-Config file options (all in repo root):
-- `config.yaml`: base version for customization
-- `config_linkedin.yaml`: LinkedIn fix (DNS/rule exclusions)
-- `config_linkedin_auto.yaml`: smart switch (auto failover groups based on the LinkedIn fix)
+## Quick Start
 
-Recommended: use [config_linkedin_auto.yaml](../../config_linkedin_auto.yaml).
+1. Check your OpenWrt release:
 
-Notes: Academic repositories and Steam downloads go direct; LinkedIn uses overseas DNS to prevent CN redirects (keep DNS unchanged).
-Before use, set your subscription URL in `proxy-providers`.
+```bash
+cat /etc/openwrt_release
+```
 
-<div align="center">
-  <img src="../../figures/Direct_rules.png" width="80%" />
-</div>
+2. Use `opkg` on `24.10` and earlier, and `apk` on `25.12+`.
 
-Custom direct rules (including academic sites):
-- Rules match top-to-bottom, earlier rules win
-- Add direct rules in `rules` under `# Custom` or `# Academic`, e.g.:
-  - `DOMAIN-SUFFIX,example.edu,DIRECT`
-  - `DOMAIN,sub.example.edu,DIRECT`
-  - `IP-CIDR,1.2.3.0/24,DIRECT,no-resolve`
-- To proxy instead, replace `DIRECT` with your default proxy group (for example, `🚀 Default Proxy`)
-- Reload OpenClash after changes
+3. Edit your subscription URL:
 
-**2. Advanced Usage**
+```yaml
+proxy-providers:
+  Airport1:
+    url: "your-subscription-url"
+```
 
-Custom rule additions:
+4. Import the YAML into OpenClash and apply it.
 
-- [OpenClash Maintenance Guide](https://blog.dreamtobe.cn/openclash_maintain/)
-- [Custom OpenClash Rules](https://github.com/Aethersailor/Custom_OpenClash_Rules) Configuration successful!
-- [GitHub Access Optimization](https://github.com/521xueweihan/GitHub520)
-    - Add GitHub-related domains to direct connection rules
-    - Solve GitHub access speed and image display issues by modifying local hosts file
+## Step 1 After Import: UI Settings For `config_linkedin_auto.yaml`
+
+Do this first. Get the config working before you start customizing it.
+
+- Disable `Bypass Mainland China / Bypass China`
+- Disable DNS override options such as `Custom Upstream DNS`, `Respect-Rules`, and any appended upstream/default DNS options
+- Do not change this config to `redir-host`; it is written around the `fake-ip` flow
+
+The LinkedIn fix depends on three pieces working together:
+
+- the `fake-ip-filter` exclusion
+- the `cn_domain` exclusion
+- explicit proxy rules for `linkedin.com`, `linkedin.cn`, `licdn.com`, and `lnkd.in`
+
+`nameserver-policy` is not required in the current solution; it is kept only as a fallback idea.
+
+## At This Point, You Can Already Use It
+
+If your goal is simply to get OpenClash working and start using it, stopping after the steps above is already enough.
+
+At this point you can already:
+
+- import and enable the config
+- start browsing through the proxy normally
+- use the YAML's built-in routing behavior as-is
+
+The rest of this guide is advanced customization, mainly for users who want to:
+
+- add extra direct/proxy rules
+- understand how Steam, academic-library routing, LinkedIn, and SSH `22` are handled
+- keep tuning the YAML for their own usage
+
+## Advanced Custom Rules
+
+The main place users should customize is the `rules:` block.
+
+- put your own rules near the top of `rules:`
+- keep them above broad `RULE-SET` entries
+- remember that matching is top to bottom
+
+Example:
+
+```yaml
+rules:
+  - DOMAIN-SUFFIX,example.edu,DIRECT
+  - DOMAIN-SUFFIX,example.com,🚀 默认代理
+  - RULE-SET,private_ip,直连
+  - RULE-SET,private_domain,直连
+```
+
+Common formats:
+
+- `DOMAIN-SUFFIX,example.com,DIRECT`
+- `DOMAIN,sub.example.com,DIRECT`
+- `IP-CIDR,1.2.3.0/24,DIRECT,no-resolve`
+- `DST-PORT,22,DIRECT`
+
+Common targets:
+
+- `DIRECT` or `直连`: direct connection
+- `🚀 默认代理`: default proxy group
+- `🤖 ChatGPT`: ChatGPT group
+- `👨🏿‍💻 GitHub`: GitHub group
+
+Examples:
+
+```yaml
+- DOMAIN-SUFFIX,library.example.edu,DIRECT
+- DOMAIN-SUFFIX,openai.com,🤖 ChatGPT
+- DOMAIN-SUFFIX,download.example.com,DIRECT
+- DOMAIN-SUFFIX,www.example.com,🚀 默认代理
+- DST-PORT,22,DIRECT
+```
+
+After editing:
+
+1. save the YAML
+2. re-upload it or replace the active config
+3. reload/apply the config in OpenClash
+
+## Built-In Scenarios In These YAML Files
+
+### Steam: store via proxy, downloads via direct routing
+
+The idea is not to force every Steam request into one routing mode. Instead:
+
+- store/community pages can use proxy routing
+- downloads and CN game-distribution resources stay direct where appropriate
+
+This reduces manual switching and usually keeps downloads more suitable for local routing.
+
+### Academic libraries: direct routing for institution IP recognition
+
+The point of these direct rules is not just saving proxy traffic. The practical goal is to let academic platforms recognize your campus or institution egress IP more directly.
+
+That reduces the need to repeatedly disable and re-enable the proxy just to download papers, and helps avoid the common case where the site opens but PDF/download permissions are identified incorrectly.
+
+### LinkedIn international access
+
+LinkedIn is only one built-in scenario, not the whole point of the guide. The config keeps the usual mainland-direct / non-mainland-proxy logic, but excludes LinkedIn from the mainland path and forces LinkedIn-related domains into the default proxy group.
+
+## When To Use `config_linkedin_auto_ssh22_redir.yaml`
+
+Use this file only when GitHub SSH `22` is broken and errors look like `Connection closed by remote host` or `kex_exchange_identification`.
+
+Required UI settings:
+
+- select [config_linkedin_auto_ssh22_redir.yaml](../../config_linkedin_auto_ssh22_redir.yaml)
+- switch OpenClash mode to `Redir` or `redir-host`
+- disable `TUN`
+- keep `DST-PORT,22,DIRECT`
+- still disable mainland-bypass and DNS override options
 
 ## References
-[https://www.youtube.com/watch?v=s84CWgKus4U&t=105s](https://www.youtube.com/watch?v=s84CWgKus4U&t=105s)
 
+- OpenWrt `apk`: https://openwrt.org/docs/guide-user/additional-software/apk
+- OpenWrt `opkg`: https://openwrt.org/docs/guide-user/additional-software/opkg
+- OpenWrt `opkg -> apk` cheatsheet: https://openwrt.org/docs/guide-user/additional-software/opkg-to-apk-cheatsheet
+- OpenClash maintenance notes: https://blog.dreamtobe.cn/openclash_maintain/
+- Custom rules reference: https://github.com/Aethersailor/Custom_OpenClash_Rules

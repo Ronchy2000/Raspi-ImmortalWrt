@@ -1,10 +1,36 @@
 # 必读！！！
-# 注意规则在满足自己需求情况下，尽量做到精简，不要过度复杂，以免影响性能。
-# 跑裸核用户请自行去掉下方控制面板模块的注释。
-# 机场订阅
-# 在fake-ip-filter中添加：
-# - geosite:cn:!linkedin.com:!linkedin.cn:!*.linkedin.com:!*.linkedin.cn
-# 并关闭绕过大陆即可，在使用绕过大陆规则情况下，把linkedin排除，即在访问linkedin时不使用真实ip
+# 注意：规则在满足自己需求情况下，尽量做到精简，不要过度复杂，以免影响性能。
+#
+# 本配置关于 LinkedIn（领英）国际版访问的关键说明：
+# 1. 本配置使用 fake-ip 模式，不建议改成 redir-host。
+#
+# 2. 必须在 fake-ip-filter 中加入下面这一条：（本 YAML 文件已做添加，无需用户自行手动操作）
+#    - geosite:cn:!linkedin.com:!linkedin.cn:!*.linkedin.com:!*.linkedin.cn
+#
+# 3. 这份 YAML 本身仍然保留“大陆直连 / 非大陆代理”的分流思路。
+#    也就是说：并不是不要“绕开大陆”这类分流逻辑，
+#    而是要在这套逻辑基础上，单独把 LinkedIn 排除出去，让 LinkedIn 继续走代理。
+#
+# 4. 必须关闭 OpenClash 界面里的“绕过中国大陆/绕过大陆”相关功能。
+#    原因不是这份 YAML 不做大陆直连，而是界面里的这套功能会在插件层额外接管/改写流量处理逻辑，
+#    导致 LinkedIn 可能还没按 YAML 中的排除规则生效，就先被系统链路处理，
+#    最终出现跳转到 cn 版领英的问题。
+#
+# 5. 必须关闭 OpenClash 界面里的 DNS 覆写相关选项，
+#    否则插件可能覆盖 YAML 中的 DNS/fake-ip 逻辑，导致本配置不按预期工作。
+#    至少确认以下选项为关闭状态：
+#    - 自定义上游 DNS 服务器
+#    - 遵循规则（Respect-Rules）
+#    如有“追加上游 DNS”“追加默认 DNS”等会干预配置文件 DNS 的选项，也建议一并关闭。
+#
+# 6. 本人实测：
+#    只要保留 fake-ip-filter 中这条 LinkedIn 排除规则，
+#    并关闭 OpenClash 界面里的“绕过中国大陆/绕过大陆”与 DNS 覆写相关选项，
+#    即可正常访问国际版 LinkedIn（linkedin.com）。
+#
+# 7. nameserver-policy 不是当前方案的必需项，
+#    目前无需额外指定 1.1.1.1 / 8.8.8.8 等海外 DNS；
+#    如后续失效，再作为兜底方案单独启用即可。（经测试，运营商 DNS 比海外 DNS 访问领英更快）
 proxy-providers:
   Airport1:
     url: "这里填写机场订阅"
@@ -188,9 +214,24 @@ dns:
     - '+.nvgs.nvidia.cn'
     - 'shark007.net'
     - 'geosite:cn:!linkedin.com:!linkedin.cn:!*.linkedin.com:!*.linkedin.cn'
+  # LinkedIn 目前只靠 fake-ip-filter 排除即可正常访问国际版
+  # 如后续再次被重定向到 cn，可再启用下面的 nameserver-policy 兜底
+  # nameserver-policy:
+  #   'linkedin.com':
+  #     - https://1.1.1.1/dns-query
+  #     - https://8.8.8.8/dns-query
+  #   '+.linkedin.com':
+  #     - https://1.1.1.1/dns-query
+  #     - https://8.8.8.8/dns-query
+  #   'licdn.com':
+  #     - https://1.1.1.1/dns-query
+  #     - https://8.8.8.8/dns-query
+  #   '+.licdn.com':
+  #     - https://1.1.1.1/dns-query
+  #     - https://8.8.8.8/dns-query
   nameserver:
-    - 202.117.112.13
-    - 218.30.19.40
+    - 202.117.112.13   # 按你的运营商 DNS 修改
+    - 218.30.19.40     # 按你的运营商 DNS 修改
 
 
 
@@ -257,9 +298,10 @@ rules:
  #config
   - RULE-SET,private_ip,直连
   - RULE-SET,private_domain,直连
- # - DOMAIN-SUFFIX,linkedin.com,🍀 Google
-  - DOMAIN-SUFFIX,linkedin,🚀 默认代理
+  - DOMAIN-SUFFIX,linkedin.com,🚀 默认代理
   - DOMAIN-SUFFIX,linkedin.cn,🚀 默认代理
+  - DOMAIN-SUFFIX,licdn.com,🚀 默认代理
+  - DOMAIN-SUFFIX,lnkd.in,🚀 默认代理
   - DOMAIN-SUFFIX,qichiyu.com,🚀 默认代理
   - RULE-SET,proxylite,🚀 默认代理
   - RULE-SET,ai,🤖 ChatGPT

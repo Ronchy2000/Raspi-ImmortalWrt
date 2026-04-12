@@ -219,12 +219,10 @@ The OpenClash guide has been restructured into a version-aware manual covering b
 - `OpenWrt 24.10 and earlier stable releases`: `opkg`
 - `OpenWrt 25.12 and newer`: `apk`
 
-The repository currently provides four YAML variants:
+The repository now keeps only two supported YAML variants:
 
-- [config.yaml](config.yaml): base template
-- [config_linkedin.yaml](config_linkedin.yaml): LinkedIn fix
-- [config_linkedin_auto.yaml](config_linkedin_auto.yaml): recommended smart-switch version
-- [config_linkedin_auto_ssh22_redir.yaml](config_linkedin_auto_ssh22_redir.yaml): GitHub SSH 22 compatibility variant
+- [config_linkedin_auto.yaml](config_linkedin_auto.yaml): recommended default for most users
+- [config_linkedin_auto_ssh22_redir.yaml](config_linkedin_auto_ssh22_redir.yaml): use only when GitHub SSH port 22 fails
 
 Read the updated guide here: [docs/Openclash_Config.md](docs/Openclash_Config.md)
 
